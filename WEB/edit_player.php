@@ -4,6 +4,8 @@ require_once 'player_functions.php';
 require_once 'groups_manager.php';
 require_once 'steam_api.php';
 
+require_admin();
+
 $steamid = $_GET['steamid'] ?? '';
 if (!$steamid) {
     header('Location: index.php');

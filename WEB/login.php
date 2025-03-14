@@ -50,7 +50,7 @@ $login_url = get_steam_auth_url();
         }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-200 min-h-screen flex items-center justify-center">
+<body class="bg-gray-900 text-gray-200 min-h-screen flex flex-col items-center justify-center relative">
     <div class="max-w-md w-full bg-gray-800 rounded-lg p-8 shadow-lg">
         <div class="text-center mb-8">
             <h1 class="text-3xl font-bold text-blue-400 mb-2">CS2 VIP Manager</h1>

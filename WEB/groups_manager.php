@@ -4,6 +4,8 @@
  */
 require_once 'db_connection.php';
 
+require_admin();
+
 /**
  * Get all available VIP groups from database
  * 

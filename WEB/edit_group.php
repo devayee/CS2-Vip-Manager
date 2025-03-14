@@ -2,6 +2,8 @@
 require_once 'db_connection.php';
 require_once 'groups_manager.php';
 
+require_admin();
+
 $group_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
 if ($group_id <= 0) {
