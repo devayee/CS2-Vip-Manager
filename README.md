@@ -31,6 +31,8 @@ You can see the plugin and website presentation here:
 - **Movement Abilities**: Multi-jump capabilities (double/triple), custom jump height, auto-bhop
 - **Weapon Access**: Special weapons menu access (!guns) **(NOT YET IMPLEMENTED)**
 
+- **`!viptest` Command** Allows players to test a VIP group for a specified duration, with configurable cooldown options (reuse after X days or restrict to a one-time use).
+- **Colored Smoke Grenades**
 ### 👥 Player Features
 - **Self-Service**: Players can check their VIP status and benefits
 - **VIP Community**: View other online VIP players
