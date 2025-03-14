@@ -25,5 +25,10 @@ public partial class MesharskyVip
         public double PlayerExtraJumpHeight { get; set; }
         public bool PlayerBunnyhop { get; set; }
         public bool PlayerWeaponmenu { get; set; }
+        public bool SmokeColorEnabled { get; set; } = false;
+        public bool SmokeColorRandom { get; set; } = false;
+        public int SmokeColorR { get; set; } = 255;
+        public int SmokeColorG { get; set; } = 255;
+        public int SmokeColorB { get; set; } = 255;
     }
 }

@@ -19,6 +19,7 @@ namespace Mesharsky_Vip
             Event_PlayerJoin();
             Event_PlayerLeave();
             Listener_OnMapStart();
+            InitializeSmokeColor();
         }
 
         private void Listener_OnMapStart()

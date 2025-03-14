@@ -58,6 +58,9 @@ public partial class MesharskyVip
                 case "removevipsteam_command":
                     aliases = Config.CommandSettings.RemoveVipSteamCommand;
                     break;
+                case "viptest_command":
+                    aliases = Config.VipTest.TestCommand;
+                    break;
                     
                 default:
                     Console.WriteLine($"[Mesharsky - VIP] WARNING: Unknown command key: {commandKey}");
@@ -69,8 +72,7 @@ public partial class MesharskyVip
                 Console.WriteLine($"[Mesharsky - VIP] WARNING: No aliases defined for command {commandKey}");
                 return;
             }
-
-            // Store registration info
+            
             var registration = new CommandRegistration
             {
                 CommandKey = commandKey,

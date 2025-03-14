@@ -1,108 +1,143 @@
-# ===================================================
-# Mesharsky VIP Plugin Configuration
-# ===================================================
+#############################################
+#          Mesharsky VIP Plugin           #
+#           Configuration File            #
+#############################################
 
-# Database connection settings
-# This section configures the MySQL database connection
+######################################
+#  Database Connection Settings      #
+#  - Configure MySQL connection here #
+######################################
 [DatabaseConnection]
-host = ""
-username = ""
-database = ""
-password = ""
-port = 3306
+host = ""      # Server address
+username = ""  # MySQL user
+database = ""  # Database name
+password = ""  # MySQL password
+port = 3306    # Default MySQL port
 
-# General plugin settings
+######################################
+#     General Plugin Settings        #
+######################################
 [PluginSettings]
+
 # Tag shown in chat messages (supports color codes)
 PluginTag = "{red}[VIP]{default}"
-# Whether to enable the online VIP players list command
+
+# Enable the VIP online list command
 online_list = true
-# Whether to enable the VIP benefits list command
+
+# Enable the VIP benefits list command
 bonuses_list = true
-# Admin flag that gets service flag
+
+# Admin flags for bypassing restrictions
 bypass_flag = "@css/root"
-# Which flag does admin gets (must match the flag in the group settings).
 bypass_flag_give = "@mesharsky/svip"
 
-# Night VIP Settings
-# This section configures the free VIP during specified hours
+###################################
+#      Night VIP Settings         #
+#  - Allows temporary VIP perks   #
+#  - Active between start_hour    #
+#    and end_hour                 #
+###################################
 [NightVip]
-enabled = true
-# The VIP group to inherit bonuses from (must match a group name in GroupSettings)
-inherit_group = "VIP"
-# The admin flag to assign for Night VIP players
-flag = "@mesharsky/nightvip"
-# Hour when Night VIP becomes available (24-hour format, 0-23)
-start_hour = 18
-# Hour when Night VIP expires (24-hour format, 0-23)
-# Note: If end_hour is less than start_hour, it's considered to be the next day
-end_hour = 6
+enabled = false
 
+# Must match an existing group name
+inherit_group = "VIP"
+
+# Admin flag for Night VIP players
+flag = "@mesharsky/nightvip"
+
+# Start and end time for Night VIP
+start_hour = 18  # Starts at 18:00
+end_hour = 6     # Ends at 06:00 (next day)
+
+#############################################
+#        VIP Test Settings (Trial VIP)      #
+#  - Enables temporary VIP access           #
+#  - Players can only use this every X days #
+#############################################
+[VipTest]
+enabled = true
+
+# Which VIP group the test players will receive
+test_group = "SVIP"
+
+# How long the test lasts (in days)
+test_duration = 7
+
+# Cooldown before a player can use VIP test again
+test_cooldown = 30
+# IMPORTANT:  
+# - If set to 0, players can ONLY test VIP ONCE EVER!  
+# - Otherwise, they must wait X days before testing again.
+
+# Commands that trigger the VIP test
+test_command = ["css_viptest", "css_testvip", "css_vipt"]
+
+######################################
+#          Command Settings          #
+######################################
 [CommandSettings]
+
 # Player commands
-# List of command aliases for regular players
 vip_command = ["css_vip", "css_grupy"]
 benefits_command = ["css_benefits", "css_przywileje"]
 online_command = ["css_online", "css_vips"]
 
 # Admin commands
-# List of command aliases for administrators
-addvip_command = ["css_addvipgroup", "css_addvip"] # IN GAME COMMAND
-removevip_command = ["css_removevipgroup", "css_removevip"] # IN GAME COMMAND
-listvip_command = ["css_listvipgroups", "css_listvip"] # IN GAME COMMAND
-listavailable_command = ["css_vipgroupsavailable", "css_listavailable"] # IN GAME COMMAND
-addvipsteam_command = ["css_addvipsteam"] # IN GAME/CONSOLE COMMAND
-removevipsteam_command = ["css_removevipsteam"] # IN GAME/CONSOLE COMMAND
+addvip_command = ["css_addvipgroup", "css_addvip"]
+removevip_command = ["css_removevipgroup", "css_removevip"]
+listvip_command = ["css_listvipgroups", "css_listvip"]
+listavailable_command = ["css_vipgroupsavailable", "css_listavailable"]
+addvipsteam_command = ["css_addvipsteam"] 
+removevipsteam_command = ["css_removevipsteam"]
 
-# VIP Group Definitions
-# You can define multiple VIP groups by repeating this section
+######################################
+#       VIP Group Definitions       #
+#   Define multiple VIP groups here  #
+######################################
 [[GroupSettings]]
 # Name of the VIP group (must be unique)
 name = "VIP"
+
 # Admin flag to assign to this group
 flag = "@mesharsky/vip"
 
 # Health & Armor Bonuses
-# Player Health
 player_hp = 110
-# Maximum player health
 player_max_hp = 110
-# Whether to give armor vest at round start
 player_vest = true
-# From which round to start giving armor vest (1 = first round, 2 = second round, etc.)
 player_vest_round = 2
-# Whether to give helmet at round start
 player_helmet = true
-# From which round to start giving helmet (1 = first round, 2 = second round, etc.)
 player_helmet_round = 2
-# Whether to give defuser to CT players at round start
 player_defuser = true
 
 # Grenade Bonuses
-# Number of grenades to give at round start
 he_amount = 1
-# Number of flashbangs to give at round start
 flash_amount = 1
-# Number of smoke grenades to give at round start
 smoke_amount = 1
-# Number of decoy grenades to give at round start
 decoy_amount = 0
-# Number of molotov/incendiary grenades to give at round start
 molotov_amount = 1
-# Number of healthshots to give at round start
-healthshot_amount = 1
+healthshot_amount = 0
 
 # Special Abilities
-# Number of extra jumps (0 = normal jump, 1 = double jump, 2 = triple jump)
 player_extra_jumps = 1
-# Height multiplier for extra jumps
 player_extra_jump_height = 250.0
-# Whether to enable auto-bhop for this group
 player_bunnyhop = false
-# Whether to enable weapons menu (!guns) for this group
 player_weaponmenu = false # NOT YET IMPLEMENTED
 
-# SVIP Group - Premium VIP with more benefits
+# Smoke Color Settings
+[GroupSettings.smoke_color]
+enabled = false
+random = false # Random colors
+red = 255      # These values are ignored when random=true
+green = 0
+blue = 0
+
+######################################
+#       SVIP - Premium Group        #
+#  More benefits than standard VIP  #
+######################################
 [[GroupSettings]]
 name = "SVIP"
 flag = "@mesharsky/svip"
@@ -129,3 +164,10 @@ player_extra_jumps = 2
 player_extra_jump_height = 270.0
 player_bunnyhop = true
 player_weaponmenu = false # NOT YET IMPLEMENTED
+
+[GroupSettings.smoke_color]
+enabled = true
+random = true
+red = 255
+green = 0
+blue = 0

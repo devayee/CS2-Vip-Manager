@@ -1,5 +1,5 @@
 {
-  "global.divider": "✦•···························•✦•···························•✦",
+  "global.divider": "{darkred}✦•···························•✦•···························•✦",
 
   "vip.welcome.title": "{0} Witaj, {darkred}{1}",
   "vip.welcome.services": "{0} Dziękujemy za wsparcie naszego serwera. Twoje usługi: ( {gold}{1}{default} ) zostały załadowane.",
@@ -72,6 +72,11 @@
   "commands.benefits.abilities.bhop": "Auto-bhop",
   "commands.benefits.abilities.weapons": "Menu broni (!guns)",
 
+  "commands.benefits.menu.smokecolor": "Efekty kolorowego dymu ►",
+  "commands.benefits.smokecolor.title": "Efekty Kolorowego Dymu",
+  "commands.benefits.smokecolor.random": "{0}: Losowy kolor dymu",
+  "commands.benefits.smokecolor.custom": "{0}: RGB ({1}, {2}, {3})",
+
   "commands.benefits.source.title": "Źródło bonusów",
 
   "commands.online.disabled": "{0} Lista online VIP jest wyłączona.",
@@ -82,6 +87,18 @@
   "commands.online.player.details": "Szczegóły VIP gracza {0}",
   "commands.online.player.name": "Gracz: {0}",
   "commands.online.player.team": "Obecna drużyna: {0}",
+
+  "commands.viptest.disabled": "{0} Funkcja Testowego VIP jest obecnie wyłączona.",
+  "commands.viptest.already.active": "{0} Masz już aktywny Test VIP. Wygaśnie za {1} dni.",
+  "commands.viptest.already.used": "{0} Wykorzystałeś już swoją możliwość testowania VIP.",
+  "commands.viptest.cooldown": "{0} Musisz poczekać jeszcze {1} dni, zanim będziesz mógł ponownie skorzystać z testu VIP.",
+  "commands.viptest.success": "{0} Otrzymałeś usługę {gold}{1}{default} na {2} dni!",
+  "commands.viptest.info": "{0} Możesz wypróbować funkcje VIP za darmo, wpisując {green}!viptest{default} na czacie.",
+  "commands.viptest.info.purchased": "{0} Posiadasz już aktywne usługi VIP: {gold}{1}{default}. Test VIP zapewnia {gold}{2}{default} na {3} dni dla graczy bez VIP.",
+
+  "vip.viptest.expires.one": "Za {0} dzień",
+  "vip.viptest.expires.many": "Za {0} dni",
+  "vip.viptest.expired": "Wygasło",
 
   "admin.player.none": "{0} Nie ma żadnych graczy online do wyboru.",
   "admin.player.nogroups": "{0} Gracz {green}{1}{default} nie posiada żadnych aktywnych grup VIP.",

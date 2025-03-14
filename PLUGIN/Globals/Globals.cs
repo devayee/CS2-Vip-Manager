@@ -150,7 +150,7 @@ public partial class MesharskyVip
         ChatHelper.PrintLocalizedChat(player, _localizer!, false, "global.divider");
     }
     
-    private string FormatExpiryDate(CCSPlayerController player, int expiryTime, string formatKey = "date.format.medium")
+    private static string FormatExpiryDate(CCSPlayerController player, int expiryTime, string formatKey = "date.format.medium")
     {
         if (expiryTime == 0)
             return _localizer!.ForPlayer(player, "commands.vip.details.neverexpires");
@@ -159,6 +159,21 @@ public partial class MesharskyVip
         var format = _localizer!.ForPlayer(player, formatKey);
     
         return dateTime.ToString(format);
+    }
+    
+    private string FormatRemainingDays(CCSPlayerController player, int expiryTime)
+    {
+        var currentTime = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var secondsRemaining = expiryTime - currentTime;
+        
+        if (secondsRemaining <= 0)
+            return _localizer!.ForPlayer(player, "vip.viptest.expired");
+        
+        var daysRemaining = (int)Math.Ceiling(secondsRemaining / 86400.0);
+        
+        return string.Format(_localizer!.ForPlayer(player, 
+                daysRemaining == 1 ? "vip.viptest.expires.one" : "vip.viptest.expires.many"), 
+            daysRemaining);
     }
 
     private static bool IsValidPlayer(CCSPlayerController player)

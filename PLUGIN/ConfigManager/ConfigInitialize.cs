@@ -34,6 +34,27 @@ public partial class MesharskyVip
             BypassFlag = pluginTable["bypass_flag"].ToString(),
             BypassFlagGive = pluginTable["bypass_flag_give"].ToString()
         };
+        
+        var vipTestConfig = new VipTestConfig();
+        if (model.TryGetValue("VipTest", out var vipTestTableObj) && vipTestTableObj is TomlTable vipTestTable)
+        {
+            if (vipTestTable.TryGetValue("enabled", out var enabledObj) && enabledObj is bool enabled)
+                vipTestConfig.Enabled = enabled;
+    
+            if (vipTestTable.TryGetValue("test_group", out var testGroupObj) && testGroupObj is string testGroup)
+                vipTestConfig.TestGroup = testGroup;
+    
+            if (vipTestTable.TryGetValue("test_duration", out var testDurationObj) && testDurationObj is long testDuration)
+                vipTestConfig.TestDuration = (int)testDuration;
+    
+            if (vipTestTable.TryGetValue("test_cooldown", out var testCooldownObj) && testCooldownObj is long testCooldown)
+                vipTestConfig.TestCooldown = (int)testCooldown;
+    
+            if (vipTestTable.TryGetValue("test_command", out var testCommandObj) && testCommandObj is TomlArray testCommandArray)
+            {
+                vipTestConfig.TestCommand = [.. testCommandArray.Cast<string>()];
+            }
+        }
 
         var nightVipConfig = new NightVipConfig();
         if (model.TryGetValue("NightVip", out var nightVipTableObj) && nightVipTableObj is TomlTable nightVipTable)
@@ -148,6 +169,26 @@ public partial class MesharskyVip
                 PlayerBunnyhop = bool.Parse(group["player_bunnyhop"].ToString()),
                 PlayerWeaponmenu = bool.Parse(group["player_weaponmenu"].ToString())
             };
+            
+            if (group.TryGetValue("smoke_color", out var smokeColorObj) && smokeColorObj is TomlTable smokeColorTable)
+            {
+                groupConfig.SmokeColor = new SmokeColorConfig();
+    
+                if (smokeColorTable.TryGetValue("enabled", out var enabledObj) && enabledObj is bool enabled)
+                    groupConfig.SmokeColor.Enabled = enabled;
+    
+                if (smokeColorTable.TryGetValue("random", out var randomObj) && randomObj is bool random)
+                    groupConfig.SmokeColor.Random = random;
+    
+                if (smokeColorTable.TryGetValue("red", out var redObj) && redObj is long red)
+                    groupConfig.SmokeColor.Red = (int)red;
+    
+                if (smokeColorTable.TryGetValue("green", out var greenObj) && greenObj is long green)
+                    groupConfig.SmokeColor.Green = (int)green;
+    
+                if (smokeColorTable.TryGetValue("blue", out var blueObj) && blueObj is long blue)
+                    groupConfig.SmokeColor.Blue = (int)blue;
+            }
 
             groupSettings.Add(groupConfig);
 
@@ -171,7 +212,12 @@ public partial class MesharskyVip
                 PlayerExtraJumps = groupConfig.PlayerExtraJumps,
                 PlayerExtraJumpHeight = groupConfig.PlayerExtraJumpHeight,
                 PlayerBunnyhop = groupConfig.PlayerBunnyhop,
-                PlayerWeaponmenu = groupConfig.PlayerWeaponmenu
+                PlayerWeaponmenu = groupConfig.PlayerWeaponmenu,
+                SmokeColorEnabled = groupConfig.SmokeColor.Enabled,
+                SmokeColorRandom = groupConfig.SmokeColor.Random,
+                SmokeColorR = groupConfig.SmokeColor.Red,
+                SmokeColorG = groupConfig.SmokeColor.Green,
+                SmokeColorB = groupConfig.SmokeColor.Blue
             };
 
             ServiceManager.RegisterService(service);
@@ -184,7 +230,8 @@ public partial class MesharskyVip
             PluginSettings = pluginSettings,
             CommandSettings = commandSettings,
             GroupSettings = groupSettings,
-            NightVip = nightVipConfig
+            NightVip = nightVipConfig,
+            VipTest = vipTestConfig
         };
     }
 }

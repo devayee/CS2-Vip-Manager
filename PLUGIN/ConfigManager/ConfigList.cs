@@ -9,6 +9,7 @@ public partial class MesharskyVip
         public required CommandSettingsConfig CommandSettings { get; set; }
         public required List<GroupSettingsConfig> GroupSettings { get; set; }
         public required NightVipConfig NightVip { get; set; }
+        public required VipTestConfig VipTest { get; set; }
     }
 
     public class DatabaseConnectionConfig
@@ -37,6 +38,15 @@ public partial class MesharskyVip
         public int StartHour { get; set; } = 18;
         public int EndHour { get; set; } = 6;
     }
+    
+    public class VipTestConfig
+    {
+        public bool Enabled { get; set; } = false;
+        public string TestGroup { get; set; } = "VIP";
+        public int TestDuration { get; set; } = 7;
+        public int TestCooldown { get; set; } = 0; // 0 = forever, otherwise days
+        public List<string> TestCommand { get; set; } = [];
+    }
 
     public class CommandSettingsConfig
     {
@@ -52,6 +62,15 @@ public partial class MesharskyVip
         public List<string> ListAvailableCommand { get; set; } = new List<string>();
         public List<string> AddVipSteamCommand { get; set; } = new List<string>();
         public List<string> RemoveVipSteamCommand { get; set; } = new List<string>();
+    }
+    
+    public class SmokeColorConfig
+    {
+        public bool Enabled { get; set; } = false;
+        public bool Random { get; set; } = false;
+        public int Red { get; set; } = 255;
+        public int Green { get; set; } = 255;
+        public int Blue { get; set; } = 255;
     }
 
     public class GroupSettingsConfig
@@ -81,5 +100,7 @@ public partial class MesharskyVip
         public double PlayerExtraJumpHeight { get; set; }
         public bool PlayerBunnyhop { get; set; }
         public bool PlayerWeaponmenu { get; set; }
+        
+        public SmokeColorConfig SmokeColor { get; set; } = new SmokeColorConfig();
     }
 }

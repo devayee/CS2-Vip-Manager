@@ -57,6 +57,31 @@ public partial class MesharskyVip
             Console.WriteLine($"Error creating database tables: {ex.Message}");
         }
     }
+
+    private static void DB_CreateVipTestTable()
+    {
+        using var connection = new MySqlConnection(_connectionString);
+        try
+        {
+            connection.Open();
+            
+            const string createVipTestTableSql = @"
+                CREATE TABLE IF NOT EXISTS vip_test_history (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    steamid64 BIGINT NOT NULL,
+                    name VARCHAR(255) NOT NULL,
+                    last_test_date INT UNSIGNED NOT NULL,
+                    UNIQUE INDEX unique_player (steamid64)
+                );
+            ";
+            
+            connection.Execute(createVipTestTableSql);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating vip_test_history table: {ex.Message}");
+        }
+    }
     
     private static void MigrateExistingData(MySqlConnection connection)
     {
@@ -100,5 +125,71 @@ public partial class MesharskyVip
         {
             Console.WriteLine($"[Mesharsky - VIP] Error during data migration: {ex.Message}");
         }
+    }
+    
+    private bool HasUsedVipTest(ulong steamId)
+    {
+        if (Config!.VipTest.TestCooldown == 0)
+        {
+            // If cooldown is 0 (forever), just check if they've ever used it
+            using var connection = new MySqlConnection(_connectionString);
+            var count = connection.ExecuteScalar<int>(
+                "SELECT COUNT(*) FROM vip_test_history WHERE steamid64 = @SteamID",
+                new { SteamID = steamId }
+            );
+            
+            return count > 0;
+        }
+        else
+        {
+            // Check if they've used it within the cooldown period
+            using var connection = new MySqlConnection(_connectionString);
+            var lastTestDate = connection.ExecuteScalar<int?>(
+                "SELECT last_test_date FROM vip_test_history WHERE steamid64 = @SteamID",
+                new { SteamID = steamId }
+            );
+            
+            if (lastTestDate == null)
+                return false;
+            
+            var currentTime = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var cooldownSeconds = Config.VipTest.TestCooldown * 86400; // Convert days to seconds
+            
+            return (currentTime - lastTestDate.Value) < cooldownSeconds;
+        }
+    }
+    
+    private int GetRemainingCooldownDays(ulong steamId)
+    {
+        using var connection = new MySqlConnection(_connectionString);
+        var lastTestDate = connection.ExecuteScalar<int?>(
+            "SELECT last_test_date FROM vip_test_history WHERE steamid64 = @SteamID",
+            new { SteamID = steamId }
+        );
+        
+        if (lastTestDate == null)
+            return 0;
+        
+        var currentTime = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var secondsElapsed = currentTime - lastTestDate.Value;
+        var cooldownSeconds = Config!.VipTest.TestCooldown * 86400; // Convert days to seconds
+        
+        if (secondsElapsed >= cooldownSeconds)
+            return 0;
+        
+        return (int)Math.Ceiling((cooldownSeconds - secondsElapsed) / 86400.0);
+    }
+    
+    private void RecordVipTestUsage(ulong steamId, string playerName)
+    {
+        using var connection = new MySqlConnection(_connectionString);
+        var currentTime = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        
+        connection.Execute(
+            "INSERT INTO vip_test_history (steamid64, name, last_test_date) " +
+            "VALUES (@SteamID, @Name, @Date) " +
+            "ON DUPLICATE KEY UPDATE name = @Name, last_test_date = @Date",
+            new { SteamID = steamId, Name = playerName, Date = currentTime }
+        );
     }
 }

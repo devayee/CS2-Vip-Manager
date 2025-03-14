@@ -9,6 +9,7 @@ public partial class MesharskyVip
     {
         DB_LoadConnectionString();
         DB_CreateTables();
+        DB_CreateVipTestTable();
     }
 }
 
