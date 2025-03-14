@@ -10,7 +10,7 @@ public partial class MesharskyVip : BasePlugin
     public override string ModuleName => "VIP Manager";
     public override string ModuleAuthor => "Mesharsky";
     public override string ModuleDescription => "Advanced vip manager plugin.";
-    public override string ModuleVersion => "1.0.0";
+    public override string ModuleVersion => "1.1.0";
 
     private static IStringLocalizer? _localizer { get; set; }
 
