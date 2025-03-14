@@ -68,10 +68,8 @@ public partial class MesharskyVip
         {
             return currentTime >= startTime && currentTime < endTime;
         }
-        else
-        {
-            return currentTime >= startTime || currentTime < endTime;
-        }
+
+        return currentTime >= startTime || currentTime < endTime;
     }
     
     private static void AssignNightVip(CCSPlayerController player)
@@ -174,6 +172,64 @@ public partial class MesharskyVip
         return string.Format(_localizer!.ForPlayer(player, 
                 daysRemaining == 1 ? "vip.viptest.expires.one" : "vip.viptest.expires.many"), 
             daysRemaining);
+    }
+
+    private List<Service> CheckExternalPermissions(CCSPlayerController player)
+    {
+        var matchingServices = new List<Service>();
+    
+        foreach (var service in Config!.GroupSettings.Select(groupSetting => ServiceManager.GetService(groupSetting.Name)).OfType<Service>().Where(service => HasAnyPermission(player, service.Flag)))
+        {
+            Console.WriteLine($"[Mesharsky - VIP] Player {player.PlayerName} has external permission {service.Flag} matching VIP group {service.Name}");
+            matchingServices.Add(service);
+        }
+    
+        return matchingServices;
+    }
+    
+    private static void ApplyExternalVipPermissions(CCSPlayerController player, Player cachedPlayer, Service service)
+    {
+        var virtualGroup = new PlayerGroup
+        {
+            GroupName = service.Name,
+            PlayerName = player.PlayerName,
+            ExpiryTime = 0,
+            Active = true
+        };
+        
+        cachedPlayer.Groups.Add(virtualGroup);
+        
+        if (cachedPlayer.LoadedGroup == null)
+        {
+            cachedPlayer.LoadedGroup = service.Name;
+            cachedPlayer.GroupExpiryTime = 0;
+            cachedPlayer.Active = true;
+        }
+        
+        PlayerCache[player.SteamID] = cachedPlayer;
+    
+        Console.WriteLine($"[Mesharsky - VIP] Applied external VIP service {service.Name} to player {player.PlayerName} with flag {service.Flag}");
+    }
+    
+    private static void AssignPlayerPermissions(CCSPlayerController player, Player cachedPlayer, Service service, PlayerGroup group)
+    {
+        group.Active = true;
+            
+        if (cachedPlayer.LoadedGroup == null)
+        {
+            cachedPlayer.LoadedGroup = service.Name;
+            cachedPlayer.GroupExpiryTime = group.ExpiryTime;
+        }
+            
+        cachedPlayer.Active = true;
+        PlayerCache[player.SteamID] = cachedPlayer;
+
+        AdminManager.AddPlayerPermissions(player, service.Flag);
+        Console.WriteLine($"[Mesharsky - VIP] Loaded service for player [ Service: {service.Name} - Name: {player.PlayerName} - SteamID: {player.SteamID} ]");
+
+        Console.WriteLine(HasAnyPermission(player, service.Flag)
+            ? $"[Mesharsky - VIP] Loaded assigned permission: {service.Flag}"
+            : $"[Mesharsky - VIP] ERROR Player has no permissions assigned, should have: {service.Flag}");
     }
 
     private static bool IsValidPlayer(CCSPlayerController player)

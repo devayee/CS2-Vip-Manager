@@ -1,8 +1,6 @@
-using System.Globalization;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
-using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Timers;
 using Timer = CounterStrikeSharp.API.Modules.Timers.Timer;
 
@@ -90,7 +88,8 @@ namespace Mesharsky_Vip
         private void ProcessPlayerJoin(CCSPlayerController player, Player cachedPlayer)
         {
             var activeGroups = cachedPlayer.Groups.Where(g => g.Active).ToList();
-    
+            
+            // First process the normal VIP groups from database
             if (activeGroups.Count != 0)
             {
                 foreach (var group in activeGroups)
@@ -101,160 +100,58 @@ namespace Mesharsky_Vip
                         AssignPlayerPermissions(player, cachedPlayer, service, group);
                     }
                 }
-        
+            
                 var primaryGroup = activeGroups.First();
                 var primaryService = ServiceManager.GetService(primaryGroup.GroupName);
 
                 if (primaryService == null) return;
-        
+            
                 WelcomeMessageEveryone(player, primaryService, activeGroups.Count);
                 ScheduleWelcomeMessage(player, activeGroups);
             }
-            else if (Config!.NightVip.Enabled && IsNightVipTime() && !cachedPlayer.Active)
+            else 
             {
-                AssignNightVip(player);
-                ScheduleNightVipWelcomeMessage(player);
-            }
-            else
-            {
-                InvalidateCachedPlayer(cachedPlayer);
-                LogNoActiveService(player);
-        
-                AddTimer(15.0f, () =>
+                var externalVipGroups = CheckExternalPermissions(player);
+                
+                if (externalVipGroups.Count > 0)
                 {
-                    if (!player.IsValid)
-                        return;
-            
-                    ChatHelper.PrintLocalizedChat(player, _localizer!, false, "global.divider");
-                    ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.novip.welcome.title", player.PlayerName);
-                    ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.novip.welcome.info");
-                    ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.novip.welcome.suggestion");
-                    ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.novip.welcome.website");
-                    ChatHelper.PrintLocalizedChat(player, _localizer!, false, "global.divider");
-                });
-            }
-        }
-
-        private void ScheduleWelcomeMessage(CCSPlayerController player, List<PlayerGroup> activeGroups)
-        {
-            AddTimer(15.0f, () =>
-            {
-                if (!player.IsValid)
-                    return;
-                
-                var earliestExpiry = activeGroups
-                    .Where(g => g.ExpiryTime > 0)
-                    .OrderBy(g => g.ExpiryTime)
-                    .FirstOrDefault();
-                
-                var servicesList = string.Join(", ", activeGroups.Select(g => {
-                    var svc = ServiceManager.GetService(g.GroupName);
-                    return svc != null ? $"{svc.Name}" : g.GroupName;
-                }));
-
-                ChatHelper.PrintLocalizedChat(player, _localizer!, false, "global.divider");
-                ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.welcome.title", player.PlayerName);
-                ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.welcome.services", servicesList);
-                
-                if (earliestExpiry == null || earliestExpiry.ExpiryTime == 0)
+                    // Apply VIP status without adding to database
+                    foreach (var service in externalVipGroups)
+                    {
+                        ApplyExternalVipPermissions(player, cachedPlayer, service);
+                    }
+                    
+                    var primaryService = externalVipGroups.First();
+                    
+                    // Show welcome messages
+                    WelcomeMessageEveryone(player, primaryService, externalVipGroups.Count);
+                    ScheduleExternalWelcomeMessage(player, externalVipGroups);
+                }
+                // Check for night VIP
+                else if (Config!.NightVip.Enabled && IsNightVipTime() && !cachedPlayer.Active)
                 {
-                    ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.welcome.expiry.never");
+                    AssignNightVip(player);
+                    ScheduleNightVipWelcomeMessage(player);
                 }
                 else
                 {
-                    var expiryDate = DateTimeOffset.FromUnixTimeSeconds(earliestExpiry.ExpiryTime).ToLocalTime();
-                    var expiryDateString = expiryDate.ToString("dd MMMM, 'o godzinie' HH:mm", new CultureInfo("pl-PL"));
-
-                    var now = DateTimeOffset.Now;
-                    var timeRemaining = expiryDate - now;
-                    var timeRemainingMessage = "";
-
-                    if (timeRemaining.TotalDays is <= 3 and > 0)
+                    InvalidateCachedPlayer(cachedPlayer);
+                    LogNoActiveService(player);
+            
+                    AddTimer(15.0f, () =>
                     {
-                        timeRemainingMessage = _localizer!["vip.welcome.expiry.warning", (int)timeRemaining.TotalDays];
-                    }
-                    else
-                    {
-                        var years = timeRemaining.Days / 365;
-                        var months = timeRemaining.Days % 365 / 30;
-                        var days = timeRemaining.Days % 365 % 30;
-
-                        if (years > 0)
-                        {
-                            var translationKey = years == 1 
-                                ? "vip.welcome.expiry.years.one" 
-                                : "vip.welcome.expiry.years.many";
-                            
-                            var monthTranslationKey = months == 1 
-                                ? "vip.welcome.expiry.months.one" 
-                                : "vip.welcome.expiry.months.many";
-                            
-                            var dayTranslationKey = days == 1 
-                                ? "vip.welcome.expiry.days.one" 
-                                : "vip.welcome.expiry.days.many";
-                            
-                            timeRemainingMessage = _localizer!["vip.welcome.expiry.years", 
-                                years, 
-                                _localizer![translationKey],
-                                months,
-                                _localizer![monthTranslationKey],
-                                days,
-                                _localizer![dayTranslationKey]];
-                        }
-                        else if (months > 0)
-                        {
-                            var monthTranslationKey = months == 1 
-                                ? "vip.welcome.expiry.months.one" 
-                                : "vip.welcome.expiry.months.many";
-                            
-                            var dayTranslationKey = days == 1 
-                                ? "vip.welcome.expiry.days.one" 
-                                : "vip.welcome.expiry.days.many";
-                            
-                            timeRemainingMessage = _localizer!["vip.welcome.expiry.months", 
-                                months,
-                                _localizer![monthTranslationKey],
-                                days,
-                                _localizer![dayTranslationKey]];
-                        }
-                        else if (days > 0)
-                        {
-                            var dayTranslationKey = days == 1 
-                                ? "vip.welcome.expiry.days.one" 
-                                : "vip.welcome.expiry.days.many";
-                            
-                            timeRemainingMessage = _localizer!["vip.welcome.expiry.days", 
-                                days,
-                                _localizer![dayTranslationKey]];
-                        }
-                    }
-
-                    ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.welcome.expiry.date", expiryDateString, timeRemainingMessage);
-                }
+                        if (!player.IsValid)
+                            return;
                 
-                ChatHelper.PrintLocalizedChat(player, _localizer!, false, "global.divider");
-            });
-        }
-
-        private static void AssignPlayerPermissions(CCSPlayerController player, Player cachedPlayer, Service service, PlayerGroup group)
-        {
-            group.Active = true;
-            
-            if (cachedPlayer.LoadedGroup == null)
-            {
-                cachedPlayer.LoadedGroup = service.Name;
-                cachedPlayer.GroupExpiryTime = group.ExpiryTime;
+                        ChatHelper.PrintLocalizedChat(player, _localizer!, false, "global.divider");
+                        ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.novip.welcome.title", player.PlayerName);
+                        ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.novip.welcome.info");
+                        ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.novip.welcome.suggestion");
+                        ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.novip.welcome.website");
+                        ChatHelper.PrintLocalizedChat(player, _localizer!, false, "global.divider");
+                    });
+                }
             }
-            
-            cachedPlayer.Active = true;
-            PlayerCache[player.SteamID] = cachedPlayer;
-
-            AdminManager.AddPlayerPermissions(player, service.Flag);
-            Console.WriteLine($"[Mesharsky - VIP] Loaded service for player [ Service: {service.Name} - Name: {player.PlayerName} - SteamID: {player.SteamID} ]");
-
-            Console.WriteLine(HasAnyPermission(player, service.Flag)
-                ? $"[Mesharsky - VIP] Loaded assigned permission: {service.Flag}"
-                : $"[Mesharsky - VIP] ERROR Player has no permissions assigned, should have: {service.Flag}");
         }
 
         private static void InvalidateCachedPlayer(Player cachedPlayer)
@@ -321,26 +218,34 @@ namespace Mesharsky_Vip
             {
                 if (!player.IsValid)
                     return;
-                                
+                        
                 var steamId = player.SteamID;
 
                 if (!PlayerCache.TryGetValue(steamId, out var cachedPlayer))
                 {
-                    return;
+                    cachedPlayer = GetOrCreatePlayer(steamId, player.PlayerName);
                 }
 
                 var activeGroups = cachedPlayer.Groups.Where(g => g.Active).ToList();
-                
+        
                 if (activeGroups.Count != 0)
                 {
                     var activeServices = activeGroups
                         .Select(g => ServiceManager.GetService(g.GroupName))
                         .Where(s => s != null)
                         .ToList();
-                        
+                
                     if (activeServices.Count != 0)
                     {
                         PlayerSpawn_CombineBonuses(player, cachedPlayer, activeServices!);
+                    }
+                }
+                else
+                {
+                    var externalServices = CheckExternalPermissions(player);
+                    if (externalServices.Count > 0)
+                    {
+                        PlayerSpawn_CombineBonuses(player, cachedPlayer, externalServices);
                     }
                 }
             });

@@ -35,6 +35,8 @@
   "vip.novip.welcome.suggestion": "{0} Check out our services (VIP/SVIP) and support the server to get additional benefits!",
   "vip.novip.welcome.website": "{0} Visit: {green}https://example.com{default} and see what we've prepared for you!",
 
+  "vip.external.permission": "{0} These services are active based on your internal permissions.",
+
   "commands.vip.menu.title": "Your VIP Services",
   "commands.vip.menu.extend": "Extend your services",
   "commands.vip.noactive": "{0} You don't have any active VIP service.",
