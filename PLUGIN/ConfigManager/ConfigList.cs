@@ -51,23 +51,23 @@ public partial class MesharskyVip
     public class CommandSettingsConfig
     {
         // Player commands
-        public List<string> VipCommand { get; set; } = new List<string>();
-        public List<string> BenefitsCommand { get; set; } = new List<string>();
-        public List<string> OnlineCommand { get; set; } = new List<string>();
+        public List<string> VipCommand { get; set; } = [];
+        public List<string> BenefitsCommand { get; set; } = [];
+        public List<string> OnlineCommand { get; set; } = [];
     
         // Admin commands
-        public List<string> AddVipCommand { get; set; } = new List<string>();
-        public List<string> RemoveVipCommand { get; set; } = new List<string>();
-        public List<string> ListVipCommand { get; set; } = new List<string>();
-        public List<string> ListAvailableCommand { get; set; } = new List<string>();
-        public List<string> AddVipSteamCommand { get; set; } = new List<string>();
-        public List<string> RemoveVipSteamCommand { get; set; } = new List<string>();
+        public List<string> AddVipCommand { get; set; } = [];
+        public List<string> RemoveVipCommand { get; set; } = [];
+        public List<string> ListVipCommand { get; set; } = [];
+        public List<string> ListAvailableCommand { get; set; } = [];
+        public List<string> AddVipSteamCommand { get; set; } = [];
+        public List<string> RemoveVipSteamCommand { get; set; } = [];
     }
     
     public class SmokeColorConfig
     {
-        public bool Enabled { get; set; } = false;
-        public bool Random { get; set; } = false;
+        public bool Enabled { get; set; }
+        public bool Random { get; set; }
         public int Red { get; set; } = 255;
         public int Green { get; set; } = 255;
         public int Blue { get; set; } = 255;
@@ -101,6 +101,6 @@ public partial class MesharskyVip
         public bool PlayerBunnyhop { get; set; }
         public bool PlayerWeaponmenu { get; set; }
         
-        public SmokeColorConfig SmokeColor { get; set; } = new SmokeColorConfig();
+        public SmokeColorConfig SmokeColor { get; set; } = new();
     }
 }

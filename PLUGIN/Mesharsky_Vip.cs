@@ -69,8 +69,7 @@ public partial class MesharskyVip : BasePlugin
             
             ResetPlayerCache(steamId);
             var cachedPlayer = GetOrCreatePlayer(steamId, playerName);
-
-
+            
             ReassignPlayerPermissions(player, cachedPlayer);
         }
     }
@@ -93,15 +92,11 @@ public partial class MesharskyVip : BasePlugin
         if (activeGroups.Count != 0)
         {
             Console.WriteLine($"[Mesharsky - VIP] Reassigning {activeGroups.Count} active groups to player {player.PlayerName}");
-            
-            foreach (var group in activeGroups)
+
+            foreach (var service in activeGroups.Select(group => ServiceManager.GetService(group.GroupName)).OfType<Service>())
             {
-                var service = ServiceManager.GetService(group.GroupName);
-                if (service != null)
-                {
-                    Console.WriteLine($"[Mesharsky - VIP] Reassigning permission {service.Flag} from group {service.Name}");
-                    AdminManager.AddPlayerPermissions(player, service.Flag);
-                }
+                Console.WriteLine($"[Mesharsky - VIP] Reassigning permission {service.Flag} from group {service.Name}");
+                AdminManager.AddPlayerPermissions(player, service.Flag);
             }
         }
         else if (Config.NightVip.Enabled && IsNightVipTime() && !cachedPlayer.Active)

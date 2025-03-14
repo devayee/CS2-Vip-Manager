@@ -93,6 +93,30 @@ public partial class MesharskyVip
         }
         
         /// <summary>
+        /// Unregisters a command and all its aliases
+        /// </summary>
+        /// <param name="commandKey">The key of the command to unregister</param>
+        public void UnregisterCommand(string commandKey)
+        {
+            if (!_commands.TryGetValue(commandKey, out var registration))
+            {
+                Console.WriteLine($"[Mesharsky - VIP] WARNING: Cannot unregister command {commandKey} because it is not registered");
+                return;
+            }
+            
+            foreach (var alias in registration.Aliases)
+            {
+                var csgoAlias = alias.StartsWith("!") ? alias[1..] : alias;
+                
+                plugin.RemoveCommand(csgoAlias, registration.Callback);
+                Console.WriteLine($"[Mesharsky - VIP] Unregistered command alias: {alias}");
+            }
+            
+            _commands.Remove(commandKey);
+            Console.WriteLine($"[Mesharsky - VIP] Command {commandKey} unregistered successfully");
+        }
+        
+        /// <summary>
         /// Gets all registered commands
         /// </summary>
         public IReadOnlyDictionary<string, CommandRegistration> GetCommands()

@@ -26,7 +26,7 @@ public static class ChatHelper
             return;
         }
 
-        var sanitizedArgs = args.Select(arg => arg ?? "").ToArray();
+        var sanitizedArgs = args.Select(arg => arg).ToArray();
 
         if (includePrefix)
         {
@@ -66,7 +66,7 @@ public static class ChatHelper
             return;
         }
 
-        var sanitizedArgs = args.Select(arg => arg ?? "").ToArray();
+        var sanitizedArgs = args.Select(arg => arg).ToArray();
 
         try
         {
@@ -76,7 +76,7 @@ public static class ChatHelper
                 
                 if (includePrefix)
                 {
-                    var prefix = MesharskyVip.Config.PluginSettings.PluginTag;
+                    var prefix = MesharskyVip.Config.PluginSettings.PluginTag.ReplaceColorTags();
                     playerArgs = new object[] { prefix }.Concat(sanitizedArgs).ToArray();
                 }
                 

@@ -153,7 +153,7 @@ public partial class MesharskyVip
                 return false;
             
             var currentTime = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            var cooldownSeconds = Config.VipTest.TestCooldown * 86400; // Convert days to seconds
+            var cooldownSeconds = Config.VipTest.TestCooldown * 86400; 
             
             return (currentTime - lastTestDate.Value) < cooldownSeconds;
         }
@@ -172,7 +172,7 @@ public partial class MesharskyVip
         
         var currentTime = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var secondsElapsed = currentTime - lastTestDate.Value;
-        var cooldownSeconds = Config!.VipTest.TestCooldown * 86400; // Convert days to seconds
+        var cooldownSeconds = Config!.VipTest.TestCooldown * 86400; 
         
         if (secondsElapsed >= cooldownSeconds)
             return 0;

@@ -50,7 +50,7 @@ public partial class MesharskyVip
         MenuAPI.OpenMenu(this, player, menu);
     }
     
-    private void cmd_ListAvailableGroupsConsole(CCSPlayerController? player)
+    private static void cmd_ListAvailableGroupsConsole(CCSPlayerController? player)
     {
         if (!CheckCommandAccess(player))
             return;
