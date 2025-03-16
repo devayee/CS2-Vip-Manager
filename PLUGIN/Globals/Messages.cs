@@ -186,7 +186,7 @@ public partial class MesharskyVip
         });
     }
 
-    private void ScheduleExternalWelcomeMessage(CCSPlayerController player, List<Service> services)
+    private void ScheduleExternalWelcomeMessage(CCSPlayerController player, List<Service?> services)
     {
         AddTimer(15.0f, () =>
         {

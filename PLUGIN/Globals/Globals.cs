@@ -18,9 +18,24 @@ public partial class MesharskyVip
 
         var halftime = ConVar.Find("mp_halftime")!.GetPrimitiveValue<bool>();
         var maxrounds = ConVar.Find("mp_maxrounds")!.GetPrimitiveValue<int>();
+        var roundsPlayed = gameRules.TotalRoundsPlayed;
 
-        return gameRules.TotalRoundsPlayed == 0 || (halftime && maxrounds / 2 == gameRules.TotalRoundsPlayed) ||
-               gameRules.GameRestart;
+        return roundsPlayed == 0 || (halftime && maxrounds / 2 == roundsPlayed) || gameRules.GameRestart;
+    }
+    
+    public static int GetEffectiveRoundNumber()
+    {
+        var gameRules = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!;
+        var halftime = ConVar.Find("mp_halftime")!.GetPrimitiveValue<bool>();
+        var maxrounds = ConVar.Find("mp_maxrounds")!.GetPrimitiveValue<int>();
+        var totalRounds = gameRules.TotalRoundsPlayed;
+        
+        if (halftime && totalRounds > maxrounds / 2)
+        {
+            return totalRounds - (maxrounds / 2);
+        }
+        
+        return totalRounds + 1;
     }
 
     private static bool IsWarmup()
@@ -32,7 +47,7 @@ public partial class MesharskyVip
     private static int GetRoundNumber()
     {
         var gameRules = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!;
-
+        
         var rounds = gameRules.TotalRoundsPlayed;
         
         return rounds;
@@ -118,34 +133,57 @@ public partial class MesharskyVip
             return;
         
         var inheritGroup = Config!.NightVip.InheritGroup;
+        
         var nightVipGroup = cachedPlayer.Groups.FirstOrDefault(g => g.GroupName == inheritGroup && g.ExpiryTime == 0);
         
         if (nightVipGroup == null) 
             return;
-
-        cachedPlayer.Groups.Remove(nightVipGroup);
-                
-        var remainingActiveGroup = cachedPlayer.GetPrimaryGroup();
-        if (remainingActiveGroup != null)
+        
+        var hasOtherActiveGroups = cachedPlayer.Groups
+            .Any(g => g != nightVipGroup && g.Active);
+        
+        bool hasExternalPermissions;
+        if (ExternalPermissionsCache.TryGetValue(player.SteamID, out var cachedPermissions))
         {
-            cachedPlayer.LoadedGroup = remainingActiveGroup.GroupName;
-            cachedPlayer.GroupExpiryTime = remainingActiveGroup.ExpiryTime;
-            cachedPlayer.Active = true;
+            hasExternalPermissions = cachedPermissions.Services.Count > 0;
         }
         else
         {
-            cachedPlayer.LoadedGroup = null;
-            cachedPlayer.GroupExpiryTime = 0;
-            cachedPlayer.Active = false;
+            var externalServices = CheckExternalPermissions(player);
+            hasExternalPermissions = externalServices.Count > 0;
         }
-                
-        AdminManager.RemovePlayerPermissions(player, Config.NightVip.Flag);
-        Console.WriteLine($"[Mesharsky - VIP] Removed Night VIP from player [ Name: {player.PlayerName} - SteamID: {player.SteamID} ]");
-
-        ChatHelper.PrintLocalizedChat(player, _localizer!, false, "global.divider");
-        ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.nightvip.expired.title");
-        ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.nightvip.expired.info");
-        ChatHelper.PrintLocalizedChat(player, _localizer!, false, "global.divider");
+        
+        if (!hasOtherActiveGroups && !hasExternalPermissions)
+        {
+            cachedPlayer.Groups.Remove(nightVipGroup);
+            
+            var remainingActiveGroup = cachedPlayer.GetPrimaryGroup();
+            if (remainingActiveGroup != null)
+            {
+                cachedPlayer.LoadedGroup = remainingActiveGroup.GroupName;
+                cachedPlayer.GroupExpiryTime = remainingActiveGroup.ExpiryTime;
+                cachedPlayer.Active = true;
+            }
+            else
+            {
+                cachedPlayer.LoadedGroup = null;
+                cachedPlayer.GroupExpiryTime = 0;
+                cachedPlayer.Active = false;
+            }
+            
+            AdminManager.RemovePlayerPermissions(player, Config.NightVip.Flag);
+            
+            Console.WriteLine($"[Mesharsky - VIP] Removed Night VIP from player [ Name: {player.PlayerName} - SteamID: {player.SteamID} ]");
+            
+            ChatHelper.PrintLocalizedChat(player, _localizer!, false, "global.divider");
+            ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.nightvip.expired.title");
+            ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.nightvip.expired.info");
+            ChatHelper.PrintLocalizedChat(player, _localizer!, false, "global.divider");
+        }
+        else
+        {
+            Console.WriteLine($"[Mesharsky - VIP] Player {player.PlayerName} has Night VIP but also has other active VIP services - not removing Night VIP");
+        }
     }
     
     private static string FormatExpiryDate(CCSPlayerController player, int expiryTime, string formatKey = "date.format.medium")
@@ -173,14 +211,20 @@ public partial class MesharskyVip
                 daysRemaining == 1 ? "vip.viptest.expires.one" : "vip.viptest.expires.many"), 
             daysRemaining);
     }
-
-    private List<Service> CheckExternalPermissions(CCSPlayerController player)
+    
+    private static List<Service> CheckExternalPermissions(CCSPlayerController player)
     {
         var matchingServices = new List<Service>();
+        var logDetails = false;
     
-        foreach (var service in Config!.GroupSettings.Select(groupSetting => ServiceManager.GetService(groupSetting.Name)).OfType<Service>().Where(service => HasAnyPermission(player, service.Flag)))
+        foreach (var groupSetting in Config!.GroupSettings)
         {
-            Console.WriteLine($"[Mesharsky - VIP] Player {player.PlayerName} has external permission {service.Flag} matching VIP group {service.Name}");
+            var service = ServiceManager.GetService(groupSetting.Name);
+            if (service == null || !HasAnyPermission(player, service.Flag)) continue;
+            if (matchingServices.Count == 0 || logDetails)
+            {
+                Console.WriteLine($"[Mesharsky - VIP] Player {player.PlayerName} has external permission matching VIP group {service.Name}");
+            }
             matchingServices.Add(service);
         }
     

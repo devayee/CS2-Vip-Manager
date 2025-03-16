@@ -35,23 +35,33 @@ namespace Mesharsky_Vip
 
                         if (IsNightVipTime())
                         {
-                            if (cachedPlayer.LoadedGroup == null && !cachedPlayer.Active)
+                            var hasActiveGroups = cachedPlayer.Groups.Any(g => g.Active);
+                            
+                            var hasExternalPermissions = false;
+                            if (ExternalPermissionsCache.TryGetValue(key, out var cachedPermissions))
+                            {
+                                hasExternalPermissions = cachedPermissions.Services.Count > 0;
+                            }
+                            
+                            if (!hasActiveGroups && !hasExternalPermissions)
                             {
                                 Console.WriteLine($"[Mesharsky - VIP] Assigning Night VIP to player [ Name: {player.PlayerName} - SteamID: {player.SteamID} ].");
                                 AssignNightVip(player);
                                 ScheduleNightVipWelcomeMessage(player);
                             }
                             else
+                            {
                                 Console.WriteLine($"[Mesharsky - VIP] Player [ Name: {player.PlayerName} - SteamID: {player.SteamID} ] already has an active service or Night VIP.");
+                            }
                         }
                         else
                         {
-                            var hasNightVip = cachedPlayer.LoadedGroup == Config!.NightVip.InheritGroup && 
-                                              cachedPlayer.Active && 
-                                              cachedPlayer.Groups.Any(g => g.GroupName == Config.NightVip.InheritGroup && g.ExpiryTime == 0);
+                            var hasNightVip = cachedPlayer.Groups.Any(g => 
+                                g.GroupName == Config!.NightVip.InheritGroup && 
+                                g is { ExpiryTime: 0, Active: true });
 
                             if (!hasNightVip) continue;
-                            Console.WriteLine($"[Mesharsky - VIP] Removing Night VIP from player [ Name: {player.PlayerName} - SteamID: {player.SteamID} ].");
+                            Console.WriteLine($"[Mesharsky - VIP] Night VIP time is over - checking if player [ Name: {player.PlayerName} - SteamID: {player.SteamID} ] should keep VIP.");
                             RemoveNightVip(player);
                         }
                     }
@@ -116,7 +126,7 @@ namespace Mesharsky_Vip
                 if (externalVipGroups.Count > 0)
                 {
                     // Apply VIP status without adding to database
-                    foreach (var service in externalVipGroups)
+                    foreach (var service in externalVipGroups.OfType<Service>())
                     {
                         ApplyExternalVipPermissions(player, cachedPlayer, service);
                     }
@@ -124,7 +134,7 @@ namespace Mesharsky_Vip
                     var primaryService = externalVipGroups.First();
                     
                     // Show welcome messages
-                    WelcomeMessageEveryone(player, primaryService, externalVipGroups.Count);
+                    if (primaryService != null) WelcomeMessageEveryone(player, primaryService, externalVipGroups.Count);
                     ScheduleExternalWelcomeMessage(player, externalVipGroups);
                 }
                 // Check for night VIP
@@ -175,10 +185,16 @@ namespace Mesharsky_Vip
 
                 var steamId = playerController.SteamID;
 
-                if (!PlayerCache.ContainsKey(steamId)) return HookResult.Continue;
-                GoodbyeMessageEveryone(playerController);
-                PlayerCache.TryRemove(steamId, out _);
-                Console.WriteLine($"[Mesharsky - VIP] Removed player from cache [ SteamID: {steamId} ]");
+                if (PlayerCache.ContainsKey(steamId))
+                {
+                    GoodbyeMessageEveryone(playerController);
+                    PlayerCache.TryRemove(steamId, out _);
+                    Console.WriteLine($"[Mesharsky - VIP] Removed player from cache [ SteamID: {steamId} ]");
+                }
+
+                if (!ExternalPermissionsCache.ContainsKey(steamId)) return HookResult.Continue;
+                ExternalPermissionsCache.Remove(steamId);
+                Console.WriteLine($"[Mesharsky - VIP] Cleared external permissions cache for player [ SteamID: {steamId} ]");
 
                 return HookResult.Continue;
             });
@@ -191,6 +207,9 @@ namespace Mesharsky_Vip
                 return HookResult.Handled;
 
             _roundStateStarted = true;
+            
+            var gameRules = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!;
+            Console.WriteLine($"[Mesharsky - VIP] Round started: TotalRounds={gameRules.TotalRoundsPlayed}, IsPistol={IsPistolRound()}, EffectiveRound={GetEffectiveRoundNumber()}");
 
             AddTimer(10.0f, () =>
             {
@@ -213,12 +232,12 @@ namespace Mesharsky_Vip
 
             if (!IsValidPlayer(player))
                 return HookResult.Continue;
-
+            
             AddTimer(0.6f, () =>
             {
                 if (!player.IsValid)
                     return;
-                        
+                
                 var steamId = player.SteamID;
 
                 if (!PlayerCache.TryGetValue(steamId, out var cachedPlayer))
@@ -227,17 +246,17 @@ namespace Mesharsky_Vip
                 }
 
                 var activeGroups = cachedPlayer.Groups.Where(g => g.Active).ToList();
-        
+                
                 if (activeGroups.Count != 0)
                 {
                     var activeServices = activeGroups
                         .Select(g => ServiceManager.GetService(g.GroupName))
                         .Where(s => s != null)
                         .ToList();
-                
+            
                     if (activeServices.Count != 0)
                     {
-                        PlayerSpawn_CombineBonuses(player, cachedPlayer, activeServices!);
+                        PlayerSpawn_CombineBonuses(player, activeServices);
                     }
                 }
                 else
@@ -245,7 +264,7 @@ namespace Mesharsky_Vip
                     var externalServices = CheckExternalPermissions(player);
                     if (externalServices.Count > 0)
                     {
-                        PlayerSpawn_CombineBonuses(player, cachedPlayer, externalServices);
+                        PlayerSpawn_CombineBonuses(player, externalServices);
                     }
                 }
             });

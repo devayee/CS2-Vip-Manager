@@ -15,21 +15,20 @@ public partial class MesharskyVip
         ["weapon_hegrenade"] = 13
     };
 
-    private void PlayerSpawn_CombineBonuses(CCSPlayerController player, Player cachedPlayer, List<Service> services)
+    private void PlayerSpawn_CombineBonuses(CCSPlayerController player, List<Service?> services)
     {
         var playerPawn = player.PlayerPawn.Value;
         if (playerPawn == null || services.Count == 0)
             return;
 
-        // Take the best value for each bonus across all services
-        var bestHp = services.Max(s => s.PlayerHp);
-        var bestMaxHp = services.Max(s => s.PlayerMaxHp);
-        var hasArmor = services.Any(s => s.PlayerVest);
-        var earliestArmorRound = services.Where(s => s.PlayerVest).Min(s => s.PlayerVestRound);
-        var hasHelmet = services.Any(s => s.PlayerHelmet);
-        var earliestHelmetRound = services.Where(s => s.PlayerHelmet).Min(s => s.PlayerHelmetRound);
-        var hasDefuser = services.Any(s => s.PlayerDefuser);
-
+        var bestHp = services.Max(s => s!.PlayerHp);
+        var bestMaxHp = services.Max(s => s!.PlayerMaxHp);
+        var hasArmor = services.Any(s => s!.PlayerVest);
+        var earliestArmorRound = services.Where(s => s!.PlayerVest).Min(s => s!.PlayerVestRound);
+        var hasHelmet = services.Any(s => s!.PlayerHelmet);
+        var earliestHelmetRound = services.Where(s => s!.PlayerHelmet).Min(s => s!.PlayerHelmetRound);
+        var hasDefuser = services.Any(s => s!.PlayerDefuser);
+        
         if (bestHp > 100)
         {
             playerPawn.Health = bestHp;
@@ -37,34 +36,35 @@ public partial class MesharskyVip
             Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_iHealth");
         }
 
-        if (!_roundStateStarted)
+        var effectiveRound = GetEffectiveRoundNumber();
+        var isPistol = IsPistolRound();
+
+        if (hasArmor && (effectiveRound >= earliestArmorRound || isPistol))
         {
-            if (hasArmor && GetRoundNumber() >= earliestArmorRound)
-            {
-                playerPawn.ArmorValue = 100;
-                Utilities.SetStateChanged(playerPawn, "CCSPlayerPawn", "m_ArmorValue");
-            }
+            playerPawn.ArmorValue = 100;
+            Utilities.SetStateChanged(playerPawn, "CCSPlayerPawn", "m_ArmorValue");
+        }
 
-            if (hasHelmet && GetRoundNumber() >= earliestHelmetRound)
+        if (hasHelmet && (effectiveRound >= earliestHelmetRound || isPistol))
+        {
+            if (playerPawn.ItemServices != null)
             {
-                if (playerPawn.ItemServices != null)
-                {
-                    new CCSPlayer_ItemServices(playerPawn.ItemServices.Handle).HasHelmet = true;
-                    Utilities.SetStateChanged(playerPawn, "CCSPlayerPawn", "m_ArmorValue");
-                }
-            }
-
-            if (hasDefuser && player.TeamNum == 3 && !HasWeapon(player, "item_defuser"))
-            {
-                if (playerPawn.ItemServices != null)
-                {
-                    new CCSPlayer_ItemServices(playerPawn.ItemServices.Handle).HasDefuser = true;
-                }
+                new CCSPlayer_ItemServices(playerPawn.ItemServices.Handle).HasHelmet = true;
+                Utilities.SetStateChanged(playerPawn, "CCSPlayer_ItemServices", "m_bHasHelmet");
             }
         }
         
-        Bonus_AssignPlayerGrenades_Combined(player, playerPawn, services);
-        Bonus_AssignPlayerHealthshot_Combined(player, playerPawn, services);
+        if (hasDefuser && player.TeamNum == 3 && !HasWeapon(player, "item_defuser"))
+        {
+            if (playerPawn.ItemServices != null)
+            {
+                new CCSPlayer_ItemServices(playerPawn.ItemServices.Handle).HasDefuser = true;
+                Utilities.SetStateChanged(playerPawn, "CCSPlayer_ItemServices", "m_bHasDefuser");
+            }
+        }
+        
+        Bonus_AssignPlayerGrenades_Combined(player, playerPawn, services!);
+        Bonus_AssignPlayerHealthshot_Combined(player, playerPawn, services!);
     }
     
     private void Bonus_AssignPlayerGrenades_Combined(CCSPlayerController player, CCSPlayerPawn playerPawn, List<Service> services)
@@ -99,11 +99,8 @@ public partial class MesharskyVip
                 break;
         }
 
-        foreach (var entry in grenadeConfig)
+        foreach (var (grenadeName, maxGrenades) in grenadeConfig)
         {
-            var grenadeName = entry.Key;
-            var maxGrenades = entry.Value;
-
             if (maxGrenades <= 0)
                 continue;
 
@@ -120,7 +117,7 @@ public partial class MesharskyVip
         }
     }
     
-    private void Bonus_AssignPlayerHealthshot_Combined(CCSPlayerController player, CCSPlayerPawn playerPawn, List<Service> services)
+    private static void Bonus_AssignPlayerHealthshot_Combined(CCSPlayerController player, CCSPlayerPawn playerPawn, List<Service> services)
     {
         var healthshotAmount = services.Max(s => s.HealthshotAmount);
         if (healthshotAmount == 0)

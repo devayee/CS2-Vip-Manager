@@ -89,6 +89,4 @@ public static class ChatHelper
             Console.WriteLine($"[Mesharsky - VIP] ERROR: Error printing localized message to all: {ex.Message}");
         }
     }
-    
-    
 }
