@@ -1,11 +1,5 @@
-#############################################
-#          Mesharsky VIP Plugin           #
-#           Configuration File            #
-#############################################
-
 ######################################
 #  Database Connection Settings      #
-#  - Configure MySQL connection here #
 ######################################
 [DatabaseConnection]
 host = ""      # Server address
@@ -34,9 +28,6 @@ bypass_flag_give = "@mesharsky/svip"
 
 ###################################
 #      Night VIP Settings         #
-#  - Allows temporary VIP perks   #
-#  - Active between start_hour    #
-#    and end_hour                 #
 ###################################
 [NightVip]
 enabled = false
@@ -53,8 +44,6 @@ end_hour = 6     # Ends at 06:00 (next day)
 
 #############################################
 #        VIP Test Settings (Trial VIP)      #
-#  - Enables temporary VIP access           #
-#  - Players can only use this every X days #
 #############################################
 [VipTest]
 enabled = true
@@ -83,13 +72,15 @@ test_command = ["css_viptest", "css_testvip", "css_vipt"]
 vip_command = ["css_vip", "css_grupy"]
 benefits_command = ["css_benefits", "css_przywileje"]
 online_command = ["css_online", "css_vips"]
+weapons_menu_command = ["css_guns", "css_weapons", "css_weapon"]
+weapons_menu_reset_command = ["css_gunreset", "css_weaponreset"]
 
 # Admin commands
 addvip_command = ["css_addvipgroup", "css_addvip"]
 removevip_command = ["css_removevipgroup", "css_removevip"]
 listvip_command = ["css_listvipgroups", "css_listvip"]
 listavailable_command = ["css_vipgroupsavailable", "css_listavailable"]
-addvipsteam_command = ["css_addvipsteam"] 
+addvipsteam_command = ["css_addvipsteam"]
 removevipsteam_command = ["css_removevipsteam"]
 
 ######################################
@@ -124,7 +115,11 @@ healthshot_amount = 0
 player_extra_jumps = 1
 player_extra_jump_height = 250.0
 player_bunnyhop = false
-player_weaponmenu = false # NOT YET IMPLEMENTED
+
+# New Special Abilities (Added 17.03.2025)
+infinite_ammo = false
+fast_reload = false
+kill_screen = false
 
 # Smoke Color Settings
 [GroupSettings.smoke_color]
@@ -133,6 +128,33 @@ random = false # Random colors
 red = 255      # These values are ignored when random=true
 green = 0
 blue = 0
+
+[GroupSettings.weapon_menu]
+enabled = true
+min_round = 2
+
+counter_terrorists_primary_weapons = [
+    "weapon_m4a1",
+    "weapon_m4a1_silencer",
+    "weapon_famas",
+]
+
+counter_terrorists_secondary_weapons = [
+    "weapon_deagle",
+    "weapon_fiveseven"
+]
+
+terrorist_primary_weapons = [
+    "weapon_ak47",
+    "weapon_mp7",
+    "weapon_ssg08"
+]
+
+terrorist_secondary_weapons = [
+    "weapon_p250",
+    "weapon_deagle",
+    "weapon_tec9"
+]
 
 ######################################
 #       SVIP - Premium Group        #
@@ -163,7 +185,10 @@ healthshot_amount = 1
 player_extra_jumps = 2
 player_extra_jump_height = 270.0
 player_bunnyhop = true
-player_weaponmenu = false # NOT YET IMPLEMENTED
+
+infinite_ammo = false
+fast_reload = false
+kill_screen = false
 
 [GroupSettings.smoke_color]
 enabled = true
@@ -171,3 +196,33 @@ random = true
 red = 255
 green = 0
 blue = 0
+
+[GroupSettings.weapon_menu]
+enabled = true
+min_round = 2
+
+counter_terrorists_primary_weapons = [
+    "weapon_m4a1",
+    "weapon_m4a1_silencer",
+    "weapon_famas",
+]
+
+counter_terrorists_secondary_weapons = [
+    "weapon_deagle",
+    "weapon_fiveseven"
+]
+
+terrorist_primary_weapons = [
+    "weapon_ak47",
+    "weapon_sg556",
+    "weapon_galilar",
+    "weapon_mp7",
+    "weapon_awp",
+    "weapon_ssg08"
+]
+
+terrorist_secondary_weapons = [
+    "weapon_p250",
+    "weapon_deagle",
+    "weapon_tec9"
+]

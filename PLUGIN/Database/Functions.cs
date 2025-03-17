@@ -1,5 +1,6 @@
 using MySqlConnector;
 using Dapper;
+using CounterStrikeSharp.API.Core;
 
 namespace Mesharsky_Vip;
 
@@ -55,6 +56,122 @@ public partial class MesharskyVip
         catch (Exception ex)
         {
             Console.WriteLine($"Error creating database tables: {ex.Message}");
+        }
+    }
+
+    private void CreateWeaponPreferencesTable()
+    {
+        try
+        {
+            using var connection = new MySqlConnection(_connectionString);
+            connection.Open();
+            
+            const string createTableSql = @"
+                CREATE TABLE IF NOT EXISTS vip_weapon_preferences (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    steamid64 BIGINT NOT NULL,
+                    team_num INT NOT NULL,
+                    primary_weapon VARCHAR(64),
+                    secondary_weapon VARCHAR(64),
+                    last_updated BIGINT NOT NULL,
+                    UNIQUE INDEX unique_player_team (steamid64, team_num)
+                );
+            ";
+            
+            connection.Execute(createTableSql);
+            Console.WriteLine("[Mesharsky - VIP] Weapon preferences table initialized");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Mesharsky - VIP] Error creating weapon preferences table: {ex.Message}");
+        }
+    }
+
+    private void LoadPlayerWeaponPreferences(CCSPlayerController player)
+    {
+        try
+        {
+            if (!CanUseWeaponMenu(player))
+                return;
+                
+            using var connection = new MySqlConnection(_connectionString);
+            
+            var preferences = connection.Query<dynamic>(
+                "SELECT * FROM vip_weapon_preferences WHERE steamid64 = @SteamID",
+                new { player.SteamID }
+            ).ToList();
+            
+            if (preferences.Count == 0)
+                return;
+                
+            if (!_playerWeaponSelections.TryGetValue(player.SteamID, out var teamSelections))
+            {
+                teamSelections = new Dictionary<int, PlayerWeaponSelection>();
+                _playerWeaponSelections[player.SteamID] = teamSelections;
+            }
+            
+            foreach (var pref in preferences)
+            {
+                var teamNum = (int)pref.team_num;
+                
+                teamSelections[teamNum] = new PlayerWeaponSelection
+                {
+                    PrimaryWeapon = pref.primary_weapon,
+                    SecondaryWeapon = pref.secondary_weapon,
+                    TeamNum = teamNum,
+                    SavedTime = (long)pref.last_updated
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Mesharsky - VIP] Error loading weapon preferences: {ex.Message}");
+        }
+    }
+
+    private static void SaveWeaponPreferencesToDb(CCSPlayerController player, PlayerWeaponSelection selection)
+    {
+        try
+        {
+            using var connection = new MySqlConnection(_connectionString);
+            
+            connection.Execute(
+                @"INSERT INTO vip_weapon_preferences 
+                  (steamid64, team_num, primary_weapon, secondary_weapon, last_updated) 
+                  VALUES (@SteamID, @TeamNum, @PrimaryWeapon, @SecondaryWeapon, @LastUpdated)
+                  ON DUPLICATE KEY UPDATE 
+                  primary_weapon = @PrimaryWeapon, 
+                  secondary_weapon = @SecondaryWeapon, 
+                  last_updated = @LastUpdated",
+                new {
+                    player.SteamID,
+                    selection.TeamNum,
+                    selection.PrimaryWeapon,
+                    selection.SecondaryWeapon,
+                    LastUpdated = selection.SavedTime
+                }
+            );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Mesharsky - VIP] Error saving weapon preferences: {ex.Message}");
+        }
+    }
+
+    private static void DeleteWeaponPreferencesFromDb(CCSPlayerController player, int teamNum)
+    {
+        try
+        {
+            using var connection = new MySqlConnection(_connectionString);
+            
+            connection.Execute(
+                "DELETE FROM vip_weapon_preferences WHERE steamid64 = @SteamID AND team_num = @TeamNum",
+                new { player.SteamID, TeamNum = teamNum }
+            );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Mesharsky - VIP] Error deleting weapon preferences: {ex.Message}");
         }
     }
 
@@ -127,7 +244,7 @@ public partial class MesharskyVip
         }
     }
     
-    private bool HasUsedVipTest(ulong steamId)
+    private static bool HasUsedVipTest(ulong steamId)
     {
         if (Config!.VipTest.TestCooldown == 0)
         {
@@ -159,7 +276,7 @@ public partial class MesharskyVip
         }
     }
     
-    private int GetRemainingCooldownDays(ulong steamId)
+    private static int GetRemainingCooldownDays(ulong steamId)
     {
         using var connection = new MySqlConnection(_connectionString);
         var lastTestDate = connection.ExecuteScalar<int?>(
@@ -180,7 +297,7 @@ public partial class MesharskyVip
         return (int)Math.Ceiling((cooldownSeconds - secondsElapsed) / 86400.0);
     }
     
-    private void RecordVipTestUsage(ulong steamId, string playerName)
+    private static void RecordVipTestUsage(ulong steamId, string playerName)
     {
         using var connection = new MySqlConnection(_connectionString);
         var currentTime = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds();

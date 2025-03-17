@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Mesharsky_Vip;
 
 public partial class MesharskyVip
@@ -54,6 +56,8 @@ public partial class MesharskyVip
         public List<string> VipCommand { get; set; } = [];
         public List<string> BenefitsCommand { get; set; } = [];
         public List<string> OnlineCommand { get; set; } = [];
+        public List<string> WeaponsMenuCommand { get; set; } = [];
+        public List<string> WeaponsMenuResetCommand { get; set; } = [];
     
         // Admin commands
         public List<string> AddVipCommand { get; set; } = [];
@@ -73,20 +77,30 @@ public partial class MesharskyVip
         public int Blue { get; set; } = 255;
     }
 
+    public class WeaponMenuConfig
+    {
+        public bool Enabled { get; set; } = false;
+        public int MinRound { get; set; } = 1;
+        public List<string> CTPrimaryWeapons { get; set; } = [];
+        public List<string> CTSecondaryWeapons { get; set; } = [];
+        public List<string> TPrimaryWeapons { get; set; } = [];
+        public List<string> TSecondaryWeapons { get; set; } = [];
+    }
+
     public class GroupSettingsConfig
     {
         public required string Name { get; set; }
         public required string Flag { get; set; }
-
-        // Bonuses
-        public int PlayerHp { get; set; }
-        public int PlayerMaxHp { get; set; }
+        
+        // Health & Armor Bonuses
+        public int PlayerHp { get; set; } = 100;
+        public int PlayerMaxHp { get; set; } = 100;
         public bool PlayerVest { get; set; }
         public int PlayerVestRound { get; set; }
         public bool PlayerHelmet { get; set; }
         public int PlayerHelmetRound { get; set; }
         public bool PlayerDefuser { get; set; }
-
+        
         // Grenades
         public int HeAmount { get; set; }
         public int FlashAmount { get; set; }
@@ -94,13 +108,21 @@ public partial class MesharskyVip
         public int DecoyAmount { get; set; }
         public int MolotovAmount { get; set; }
         public int HealthshotAmount { get; set; }
-
-        // Special Bonuses
+        
+        // Special Abilities
         public int PlayerExtraJumps { get; set; }
         public double PlayerExtraJumpHeight { get; set; }
         public bool PlayerBunnyhop { get; set; }
         public bool PlayerWeaponmenu { get; set; }
         
-        public SmokeColorConfig SmokeColor { get; set; } = new();
+        public bool InfiniteAmmo { get; set; }
+        public bool FastReload { get; set; }
+        public bool KillScreen { get; set; }
+        
+        // Smoke Color
+        public required SmokeColorConfig SmokeColor { get; set; }
+        
+        // Weapon Menu
+        public required WeaponMenuConfig WeaponMenu { get; set; } = new();
     }
 }

@@ -14,7 +14,7 @@ public partial class MesharskyVip
         RegisterListener<Listeners.OnTick>(PlayerOnTick);
     }
 
-    private void PlayerOnTick()
+    private static void PlayerOnTick()
     {
         foreach (var player in Utilities.GetPlayers()
             .Where(player => player is { IsValid: true, IsBot: false, PawnIsAlive: true }))

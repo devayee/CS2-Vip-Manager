@@ -7,6 +7,7 @@ using CS2ScreenMenuAPI;
 using CS2ScreenMenuAPI.Enums;
 using CS2ScreenMenuAPI.Internal;
 
+
 namespace Mesharsky_Vip;
 
 public partial class MesharskyVip
@@ -91,72 +92,40 @@ public partial class MesharskyVip
         menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.details.name", group.Name), (_, _) => { }, disabled: true);
         menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.details.flag", group.Flag), (_, _) => { }, disabled: true);
         
-        menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.details.bonuses"), (_, _) => { }, disabled: true);
+        menu.AddOption(_localizer!.ForPlayer(admin, "benefits.header"), (_, _) => { }, disabled: true);
         
-        menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.details.health", group.PlayerHp), (_, _) => { }, disabled: true);
-        menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.details.maxhealth", group.PlayerMaxHp), (_, _) => { }, disabled: true);
-        
-        if (group.PlayerVest)
-            menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.details.armor", group.PlayerVestRound), (_, _) => { }, disabled: true);
-            
-        if (group.PlayerHelmet)
-            menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.details.helmet", group.PlayerHelmetRound), (_, _) => { }, disabled: true);
-            
-        if (group.PlayerDefuser)
-            menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.details.defuser"), (_, _) => { }, disabled: true);
-        
-        menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.details.grenades"), (_, _) => { }, disabled: true);
-        
-        if (group.HeAmount > 0)
-            menu.AddOption(_localizer!.ForPlayer(admin, "commands.benefits.grenades.he", group.HeAmount), (_, _) => { }, disabled: true);
-            
-        if (group.FlashAmount > 0)
-            menu.AddOption(_localizer!.ForPlayer(admin, "commands.benefits.grenades.flash", group.FlashAmount), (_, _) => { }, disabled: true);
-            
-        if (group.SmokeAmount > 0)
-            menu.AddOption(_localizer!.ForPlayer(admin, "commands.benefits.grenades.smoke", group.SmokeAmount), (_, _) => { }, disabled: true);
-            
-        if (group.DecoyAmount > 0)
-            menu.AddOption(_localizer!.ForPlayer(admin, "commands.benefits.grenades.decoy", group.DecoyAmount), (_, _) => { }, disabled: true);
-            
-        if (group.MolotovAmount > 0)
-            menu.AddOption(_localizer!.ForPlayer(admin, "commands.benefits.grenades.molotov", group.MolotovAmount), (_, _) => { }, disabled: true);
-            
-        if (group.HealthshotAmount > 0)
-            menu.AddOption(_localizer!.ForPlayer(admin, "commands.benefits.grenades.healthshot", group.HealthshotAmount), (_, _) => { }, disabled: true);
-        
-        menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.details.abilities"), (_, _) => { }, disabled: true);
-        
-        if (group.PlayerExtraJumps > 0)
+        var service = new Service
         {
-            var jumpType = group.PlayerExtraJumps == 1 
-                ? _localizer!.ForPlayer(admin, "admin.menu.details.jump.double", group.PlayerExtraJumps + 1)
-                : _localizer!.ForPlayer(admin, "admin.menu.details.jump.triple", group.PlayerExtraJumps + 1);
-                
-            menu.AddOption(jumpType, (_, _) => { }, disabled: true);
-            menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.details.jumpheight", group.PlayerExtraJumpHeight), (_, _) => { }, disabled: true);
-        }
+            Name = group.Name,
+            Flag = group.Flag,
+            PlayerHp = group.PlayerHp,
+            PlayerMaxHp = group.PlayerMaxHp,
+            PlayerVest = group.PlayerVest,
+            PlayerVestRound = group.PlayerVestRound,
+            PlayerHelmet = group.PlayerHelmet,
+            PlayerHelmetRound = group.PlayerHelmetRound,
+            PlayerDefuser = group.PlayerDefuser,
+            HeAmount = group.HeAmount,
+            FlashAmount = group.FlashAmount,
+            SmokeAmount = group.SmokeAmount,
+            DecoyAmount = group.DecoyAmount,
+            MolotovAmount = group.MolotovAmount,
+            HealthshotAmount = group.HealthshotAmount,
+            PlayerExtraJumps = group.PlayerExtraJumps,
+            PlayerExtraJumpHeight = group.PlayerExtraJumpHeight,
+            PlayerBunnyhop = group.PlayerBunnyhop,
+            SmokeColorEnabled = group.SmokeColor.Enabled,
+            SmokeColorRandom = group.SmokeColor.Random,
+            SmokeColorR = group.SmokeColor.Red,
+            SmokeColorG = group.SmokeColor.Green,
+            SmokeColorB = group.SmokeColor.Blue,
+            InfiniteAmmo = group.InfiniteAmmo,
+            FastReload = group.FastReload,
+            KillScreen = group.KillScreen,
+            WeaponMenu = group.WeaponMenu
+        };
         
-        if (group.PlayerBunnyhop)
-            menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.details.bhop"), (_, _) => { }, disabled: true);
-            
-        if (group.PlayerWeaponmenu)
-            menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.details.weaponmenu"), (_, _) => { }, disabled: true);
-        
-        if (group.SmokeColor.Enabled)
-        {
-            menu.AddOption(_localizer!.ForPlayer(admin, "commands.benefits.menu.smokecolor"), (_, _) => { }, disabled: true);
-        
-            if (group.SmokeColor.Random)
-            {
-                menu.AddOption(_localizer!.ForPlayer(admin, "commands.benefits.smokecolor.random", group.Name), (_, _) => { }, disabled: true);
-            }
-            else
-            {
-                menu.AddOption(_localizer!.ForPlayer(admin, "commands.benefits.smokecolor.custom", 
-                    group.Name, group.SmokeColor.Red, group.SmokeColor.Green, group.SmokeColor.Blue), (_, _) => { }, disabled: true);
-            }
-        }
+        BenefitsRenderer.RenderServiceBenefits(menu, admin, service);
         
         menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.button.back"), (p, _) => {
             MenuAPI.CloseActiveMenu(p);
