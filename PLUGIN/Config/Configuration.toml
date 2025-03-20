@@ -116,7 +116,6 @@ player_extra_jumps = 1
 player_extra_jump_height = 250.0
 player_bunnyhop = false
 
-# New Special Abilities (Added 17.03.2025)
 infinite_ammo = false
 fast_reload = false
 kill_screen = false
@@ -137,11 +136,13 @@ counter_terrorists_primary_weapons = [
     "weapon_m4a1",
     "weapon_m4a1_silencer",
     "weapon_famas",
+    "weapon_ssg08"
 ]
 
 counter_terrorists_secondary_weapons = [
     "weapon_deagle",
-    "weapon_fiveseven"
+    "weapon_fiveseven",
+    "weapon_p250"
 ]
 
 terrorist_primary_weapons = [
@@ -183,7 +184,7 @@ healthshot_amount = 1
 
 # Special Abilities
 player_extra_jumps = 2
-player_extra_jump_height = 270.0
+player_extra_jump_height = 250.0
 player_bunnyhop = true
 
 infinite_ammo = false
@@ -205,11 +206,16 @@ counter_terrorists_primary_weapons = [
     "weapon_m4a1",
     "weapon_m4a1_silencer",
     "weapon_famas",
+    "weapon_awp",
+    "weapon_ssg08",
+    "weapon_mp7"
 ]
 
 counter_terrorists_secondary_weapons = [
     "weapon_deagle",
-    "weapon_fiveseven"
+    "weapon_fiveseven",
+    "weapon_p250",
+    "weapon_revolver"
 ]
 
 terrorist_primary_weapons = [
@@ -224,5 +230,6 @@ terrorist_primary_weapons = [
 terrorist_secondary_weapons = [
     "weapon_p250",
     "weapon_deagle",
-    "weapon_tec9"
+    "weapon_tec9",
+    "weapon_revolver"
 ]

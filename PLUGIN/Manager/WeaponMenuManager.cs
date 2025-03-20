@@ -11,8 +11,6 @@ namespace Mesharsky_Vip;
 
 public partial class MesharskyVip
 {
-    private readonly Dictionary<ulong, Dictionary<int, PlayerWeaponSelection>> _playerWeaponSelections = new();
-    
     public class PlayerWeaponSelection
     {
         public string? PrimaryWeapon { get; set; }
@@ -124,10 +122,6 @@ public partial class MesharskyVip
             });
         }
         
-        menu.AddOption(_localizer!.ForPlayer(player, "commands.weaponsmenu.close"), (p, _) => {
-            MenuAPI.CloseActiveMenu(p);
-        });
-        
         MenuAPI.OpenMenu(this, player, menu);
     }
     
@@ -162,10 +156,6 @@ public partial class MesharskyVip
             RemoveTeamWeaponSelection(p, 2);
             RemoveTeamWeaponSelection(p, 3);
             ChatHelper.PrintLocalizedChat(p, _localizer!, true, "commands.weaponsmenu.resetallteams");
-            MenuAPI.CloseActiveMenu(p);
-        });
-        
-        menu.AddOption(_localizer!.ForPlayer(player, "commands.weaponsmenu.close"), (p, _) => {
             MenuAPI.CloseActiveMenu(p);
         });
         
@@ -299,10 +289,6 @@ public partial class MesharskyVip
             CreateTeamSelectionMenu(p);
         });
         
-        menu.AddOption(_localizer!.ForPlayer(player, "commands.weaponsmenu.close"), (p, _) => {
-            MenuAPI.CloseActiveMenu(p);
-        });
-        
         MenuAPI.OpenMenu(this, player, menu);
     }
     
@@ -371,20 +357,17 @@ public partial class MesharskyVip
     
     private void UpdateTeamWeaponSelection(CCSPlayerController player, bool isPrimary, string? weaponName, int teamNum)
     {
-        if (!_playerWeaponSelections.TryGetValue(player.SteamID, out var teamSelections))
-        {
-            teamSelections = new Dictionary<int, PlayerWeaponSelection>();
-            _playerWeaponSelections[player.SteamID] = teamSelections;
-        }
-        
-        if (!teamSelections.TryGetValue(teamNum, out var selection))
+        if (!PlayerCache.TryGetValue(player.SteamID, out var cachedPlayer))
+            return;
+            
+        if (!cachedPlayer.WeaponSelections.TryGetValue(teamNum, out var selection))
         {
             selection = new PlayerWeaponSelection
             {
                 TeamNum = teamNum,
                 SavedTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
             };
-            teamSelections[teamNum] = selection;
+            cachedPlayer.WeaponSelections[teamNum] = selection;
         }
         
         if (isPrimary)
@@ -403,10 +386,6 @@ public partial class MesharskyVip
             RemoveTeamWeaponSelection(player, teamNum);
             return;
         }
-
-        Server.NextFrame(() => {
-            Task.Run(() => SaveWeaponPreferencesToDb(player, selection));
-        });
     }
     
     private static void ApplyWeaponSelection(CCSPlayerController player, PlayerWeaponSelection selection)
@@ -437,47 +416,39 @@ public partial class MesharskyVip
         }
     }
 
-    private bool TryGetTeamWeaponSelection(CCSPlayerController player, int teamNum, out PlayerWeaponSelection selection)
+    private static bool TryGetTeamWeaponSelection(CCSPlayerController player, int teamNum, out PlayerWeaponSelection selection)
     {
         selection = null!;
         
-        if (!_playerWeaponSelections.TryGetValue(player.SteamID, out var teamSelections))
+        if (!PlayerCache.TryGetValue(player.SteamID, out var cachedPlayer))
             return false;
             
-        return teamSelections.TryGetValue(teamNum, out selection!);
+        return cachedPlayer.WeaponSelections.TryGetValue(teamNum, out selection!);
     }
     
-    private bool TryGetPlayerWeaponSelection(CCSPlayerController player, out PlayerWeaponSelection selection)
+    private static bool TryGetPlayerWeaponSelection(CCSPlayerController player, out PlayerWeaponSelection selection)
     {
         selection = null!;
         
-        if (!_playerWeaponSelections.TryGetValue(player.SteamID, out var teamSelections))
+        if (!PlayerCache.TryGetValue(player.SteamID, out var cachedPlayer))
             return false;
             
-        return teamSelections.TryGetValue(player.TeamNum, out selection!);
-    }
-    
-    private void RemoveWeaponSelection(CCSPlayerController player)
-    {
-        RemoveTeamWeaponSelection(player, player.TeamNum);
+        return cachedPlayer.WeaponSelections.TryGetValue(player.TeamNum, out selection!);
     }
 
-    private void RemoveTeamWeaponSelection(CCSPlayerController player, int teamNum)
+    private static void RemoveTeamWeaponSelection(CCSPlayerController player, int teamNum)
     {
-        if (!_playerWeaponSelections.TryGetValue(player.SteamID, out var teamSelections)) 
+        if (!PlayerCache.TryGetValue(player.SteamID, out var cachedPlayer)) 
             return;
             
-        if (teamSelections.TryGetValue(teamNum, out _))
+        if (cachedPlayer.WeaponSelections.TryGetValue(teamNum, out _))
         {
-            Server.NextFrame(() =>{
+            Server.NextFrame(() => {
                 Task.Run(() => DeleteWeaponPreferencesFromDb(player, teamNum));
             });
+            
+            cachedPlayer.WeaponSelections.Remove(teamNum);
         }
-        
-        teamSelections.Remove(teamNum);
-        
-        if (teamSelections.Count == 0)
-            _playerWeaponSelections.Remove(player.SteamID);
     }
     
     // Snippet used from daffy module for VIP CORE specially: AddEntityIOEvent call.
@@ -514,10 +485,5 @@ public partial class MesharskyVip
         var name = weaponName.Replace("weapon_", "");
         
         return char.ToUpper(name[0]) + name.Substring(1);
-    }
-    
-    private void CleanupPlayerWeaponSelections(CCSPlayerController player)
-    {
-        _playerWeaponSelections.Remove(player.SteamID);
     }
 }

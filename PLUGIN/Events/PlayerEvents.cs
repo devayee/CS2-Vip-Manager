@@ -40,8 +40,10 @@ namespace Mesharsky_Vip
 
             var steamId = player.SteamID;
 
-            if (PlayerCache.ContainsKey(steamId))
+            if (PlayerCache.TryGetValue(steamId, out var cachedPlayer))
             {
+                SavePlayerWeaponPreferences(player);
+                
                 GoodbyeMessageEveryone(player);
                 PlayerCache.TryRemove(steamId, out _);
                 Console.WriteLine($"[Mesharsky - VIP] Removed player from cache [ SteamID: {steamId} ]");
@@ -52,8 +54,6 @@ namespace Mesharsky_Vip
                 ExternalPermissionsCache.Remove(steamId);
                 Console.WriteLine($"[Mesharsky - VIP] Cleared external permissions cache for player [ SteamID: {steamId} ]");
             }
-            
-            CleanupPlayerWeaponSelections(player);
 
             return HookResult.Continue;
         }

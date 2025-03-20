@@ -26,7 +26,7 @@ public partial class MesharskyVip
         public bool Active { get; set; }
         
         public List<PlayerGroup> Groups { get; set; } = [];
-
+        public Dictionary<int, PlayerWeaponSelection> WeaponSelections { get; set; } = new();
         public PlayerSettings BonusSettings { get; set; } = new();
         
         public PlayerGroup? GetPrimaryGroup()
