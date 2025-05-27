@@ -24,10 +24,24 @@ public partial class MesharskyVip
         var bestHp = services.Max(s => s!.PlayerHp);
         var bestMaxHp = services.Max(s => s!.PlayerMaxHp);
         var hasArmor = services.Any(s => s!.PlayerVest);
-        var earliestArmorRound = services.Where(s => s!.PlayerVest).Min(s => s!.PlayerVestRound);
         var hasHelmet = services.Any(s => s!.PlayerHelmet);
-        var earliestHelmetRound = services.Where(s => s!.PlayerHelmet).Min(s => s!.PlayerHelmetRound);
         var hasDefuser = services.Any(s => s!.PlayerDefuser);
+        
+        int earliestArmorRound = 1;
+        if (hasArmor)
+        {
+            var armorServices = services.Where(s => s!.PlayerVest).ToList();
+            if (armorServices.Count > 0)
+                earliestArmorRound = armorServices.Min(s => s!.PlayerVestRound);
+        }
+        
+        int earliestHelmetRound = 1;
+        if (hasHelmet)
+        {
+            var helmetServices = services.Where(s => s!.PlayerHelmet).ToList();
+            if (helmetServices.Count > 0)
+                earliestHelmetRound = helmetServices.Min(s => s!.PlayerHelmetRound);
+        }
         
         if (bestHp > 100)
         {
@@ -39,13 +53,13 @@ public partial class MesharskyVip
         var effectiveRound = GetEffectiveRoundNumber();
         var isPistol = IsPistolRound();
 
-        if (hasArmor && (effectiveRound >= earliestArmorRound || isPistol))
+        if (hasArmor && effectiveRound >= earliestArmorRound)
         {
             playerPawn.ArmorValue = 100;
             Utilities.SetStateChanged(playerPawn, "CCSPlayerPawn", "m_ArmorValue");
         }
 
-        if (hasHelmet && (effectiveRound >= earliestHelmetRound || isPistol))
+        if (hasHelmet && effectiveRound >= earliestHelmetRound)
         {
             if (playerPawn.ItemServices != null)
             {

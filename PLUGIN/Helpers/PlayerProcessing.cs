@@ -8,7 +8,6 @@ namespace Mesharsky_Vip
         {
             var activeGroups = cachedPlayer.Groups.Where(g => g.Active).ToList();
             
-            // First process the normal VIP groups from database
             if (activeGroups.Count != 0)
             {
                 ProcessPlayerWithActiveGroups(player, cachedPlayer, activeGroups);
@@ -47,7 +46,6 @@ namespace Mesharsky_Vip
             {
                 ProcessPlayerWithExternalPermissions(player, cachedPlayer, externalVipGroups);
             }
-            // Check for night VIP
             else if (Config!.NightVip.Enabled && IsNightVipTime() && !cachedPlayer.Active)
             {
                 AssignNightVip(player);
@@ -61,7 +59,6 @@ namespace Mesharsky_Vip
 
         private void ProcessPlayerWithExternalPermissions(CCSPlayerController player, Player cachedPlayer, List<Service> externalVipGroups)
         {
-            // Apply VIP status without adding to database
             foreach (var service in externalVipGroups.OfType<Service>())
             {
                 ApplyExternalVipPermissions(player, cachedPlayer, service);
@@ -69,7 +66,6 @@ namespace Mesharsky_Vip
             
             var primaryService = externalVipGroups.First();
             
-            // Show welcome messages
             WelcomeMessageEveryone(player, primaryService, externalVipGroups.Count);
             ScheduleExternalWelcomeMessage(player, externalVipGroups);
         }
@@ -84,12 +80,10 @@ namespace Mesharsky_Vip
                 if (!player.IsValid)
                     return;
         
-                ChatHelper.PrintLocalizedChat(player, _localizer!, false, "global.divider");
                 ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.novip.welcome.title", player.PlayerName);
                 ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.novip.welcome.info");
                 ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.novip.welcome.suggestion");
                 ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.novip.welcome.website");
-                ChatHelper.PrintLocalizedChat(player, _localizer!, false, "global.divider");
             });
         }
 
@@ -109,21 +103,26 @@ namespace Mesharsky_Vip
         /// </summary>
         private static bool PlayerHasFeature(CCSPlayerController player, Func<Service, bool> featureCheck)
         {
-            if (!PlayerCache.TryGetValue(player.SteamID, out var cachedPlayer)) 
-                return false;
-    
-            if (!cachedPlayer.Active) 
-                return false;
-    
-            // Get all active groups for the player
-            var activeGroups = cachedPlayer.Groups.Where(g => g.Active).ToList();
-    
-            // Check each group for the feature
-            foreach (var group in activeGroups)
+            if (PlayerCache.TryGetValue(player.SteamID, out var cachedPlayer) && cachedPlayer.Active)
             {
-                var service = ServiceManager.GetService(group.GroupName);
-                if (service != null && featureCheck(service))
+                var activeGroups = cachedPlayer.Groups.Where(g => g.Active).ToList();
+        
+                foreach (var group in activeGroups)
+                {
+                    var service = ServiceManager.GetService(group.GroupName);
+                    if (service != null && featureCheck(service))
+                        return true;
+                }
+            }
+            
+            var externalServices = CheckExternalPermissions(player);
+            foreach (var service in externalServices)
+            {
+                if (featureCheck(service))
+                {
+                    Console.WriteLine($"[Mesharsky - VIP] Feature check passed via external permissions for player {player.PlayerName}, service {service.Name}");
                     return true;
+                }
             }
     
             return false;

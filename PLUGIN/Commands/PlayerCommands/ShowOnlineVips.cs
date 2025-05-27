@@ -1,11 +1,7 @@
-﻿using System.Drawing;
-using CounterStrikeSharp.API;
+﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Translations;
 using CounterStrikeSharp.API.Modules.Commands;
-using CS2ScreenMenuAPI;
-using CS2ScreenMenuAPI.Enums;
-using CS2ScreenMenuAPI.Internal;
 
 namespace Mesharsky_Vip;
 
@@ -24,7 +20,9 @@ public partial class MesharskyVip
         }
         
         var vipPlayers = Utilities.GetPlayers()
-            .Where(p => p is { IsValid: true, IsBot: false } && PlayerCache.TryGetValue(p.SteamID, out var cached) && cached.Groups.Any(g => g.Active))
+            .Where(p => p is { IsValid: true, IsBot: false } && 
+                (PlayerCache.TryGetValue(p.SteamID, out var cached) && cached.Groups.Any(g => g.Active) ||
+                 CheckExternalPermissions(p).Count > 0))
             .ToList();
             
         if (vipPlayers.Count == 0)
@@ -38,27 +36,31 @@ public partial class MesharskyVip
 
     private void CreateOnlineVipsMenu(CCSPlayerController player, List<CCSPlayerController> vipPlayers)
     {
-        var menu = new ScreenMenu(_localizer!.ForPlayer(player, "commands.online.title", vipPlayers.Count), this)
-        {
-            PostSelectAction = CS2ScreenMenuAPI.Enums.PostSelectAction.Nothing,
-            IsSubMenu = false,
-            TextColor = Color.Gold,
-            FontName = "Verdana Bold",
-            MenuType = MenuType.Both
-        };
+        var manager = GetMenuManager();
+        if (manager == null)
+            return;
+            
+        var menu = manager.CreateMenu(_localizer!.ForPlayer(player, "commands.online.title", vipPlayers.Count), isSubMenu: false);
         
-        menu.AddOption(_localizer!.ForPlayer(player, "commands.online.header", vipPlayers.Count), (_, _) => { }, disabled: true);
+        menu.AddOption(_localizer!.ForPlayer(player, "commands.online.header", vipPlayers.Count), (_, _) => { });
         
         foreach (var vipPlayer in vipPlayers)
         {
-            if (!PlayerCache.TryGetValue(vipPlayer.SteamID, out var cached)) 
-                continue;
-                
-            var groups = cached.Groups.Where(g => g.Active)
-                .Select(g => ServiceManager.GetService(g.GroupName)?.Name ?? g.GroupName)
-                .ToList();
-                
-            var groupsText = string.Join(", ", groups);
+            var groups = new List<string>();
+            
+            if (PlayerCache.TryGetValue(vipPlayer.SteamID, out var cached))
+            {
+                groups.AddRange(cached.Groups.Where(g => g.Active)
+                    .Select(g => ServiceManager.GetService(g.GroupName)?.Name ?? g.GroupName));
+            }
+            
+            if (groups.Count == 0)
+            {
+                var externalServices = CheckExternalPermissions(vipPlayer);
+                groups.AddRange(externalServices.Select(s => s.Name));
+            }
+            
+            var groupsText = groups.Count > 0 ? string.Join(", ", groups) : "External VIP";
             
             menu.AddOption($"{vipPlayer.PlayerName} - {groupsText}", (p, _) => {
                 ShowVipPlayerDetails(p, vipPlayer, menu);
@@ -66,45 +68,50 @@ public partial class MesharskyVip
         }
         
         menu.AddOption(_localizer!.ForPlayer(player, "commands.benefits.menu.close"), (p, _) => {
-            MenuAPI.CloseActiveMenu(p);
+            manager.CloseMenu(player);
         });
         
-        MenuAPI.OpenMenu(this, player, menu);
+        manager.OpenMainMenu(player, menu);
     }
 
-    private void ShowVipPlayerDetails(CCSPlayerController viewer, CCSPlayerController vipPlayer, ScreenMenu parentMenu)
+    private void ShowVipPlayerDetails(CCSPlayerController viewer, CCSPlayerController vipPlayer, IT3Menu parentMenu)
     {
-        if (!PlayerCache.TryGetValue(vipPlayer.SteamID, out var cached))
+        var manager = GetMenuManager();
+        if (manager == null)
             return;
         
-        var detailsMenu = new ScreenMenu(_localizer!.ForPlayer(viewer, "commands.online.player.details", vipPlayer.PlayerName), this)
+        var detailsMenu = manager.CreateMenu(_localizer!.ForPlayer(viewer, "commands.online.player.details", vipPlayer.PlayerName), isSubMenu: true);
+        
+        detailsMenu.AddOption(_localizer!.ForPlayer(viewer, "commands.online.player.name", vipPlayer.PlayerName), (_, _) => { });
+        
+        var hasDetails = false;
+        
+        if (PlayerCache.TryGetValue(vipPlayer.SteamID, out var cached))
         {
-            IsSubMenu = true,
-            PostSelectAction = CS2ScreenMenuAPI.Enums.PostSelectAction.Nothing,
-            TextColor = Color.LightGreen,
-            FontName = "Verdana Bold",
-            ParentMenu = parentMenu
-        };
-        
-        detailsMenu.AddOption(_localizer!.ForPlayer(viewer, "commands.online.player.name", vipPlayer.PlayerName), (_, _) => { }, disabled: true);
-        
-        var groupsWithExpiry = cached.Groups.Where(g => g.Active).Select(group => (group.GroupName, group.ExpiryTime)).ToList();
-        
-        foreach (var (name, expiryTime) in groupsWithExpiry)
-        {
-            var expiryText = expiryTime == 0 
-                ? _localizer!.ForPlayer(viewer, "commands.vip.details.neverexpires") 
-                : _localizer!.ForPlayer(viewer, "commands.vip.details.expires", 
-                    FormatExpiryDate(viewer, expiryTime));
-                    
-            detailsMenu.AddOption($"{name} - {expiryText}", (_, _) => { }, disabled: true);
+            var groupsWithExpiry = cached.Groups.Where(g => g.Active).Select(group => (group.GroupName, group.ExpiryTime)).ToList();
+            
+            foreach (var (name, expiryTime) in groupsWithExpiry)
+            {
+                var expiryText = expiryTime == 0 
+                    ? _localizer!.ForPlayer(viewer, "commands.vip.details.neverexpires") 
+                    : _localizer!.ForPlayer(viewer, "commands.vip.details.expires", 
+                        FormatExpiryDate(viewer, expiryTime));
+                        
+                detailsMenu.AddOption($"{name} - {expiryText}", (_, _) => { });
+                hasDetails = true;
+            }
         }
         
-        detailsMenu.AddOption(_localizer!.ForPlayer(viewer, "commands.online.back"), (p, _) => {
-            MenuAPI.CloseActiveMenu(p);
-            MenuAPI.OpenMenu(this, p, parentMenu);
-        });
+        if (!hasDetails)
+        {
+            var externalServices = CheckExternalPermissions(vipPlayer);
+            foreach (var service in externalServices)
+            {
+                var expiryText = _localizer!.ForPlayer(viewer, "commands.vip.details.external");
+                detailsMenu.AddOption($"{service.Name} - {expiryText}", (_, _) => { });
+            }
+        }
         
-        MenuAPI.OpenSubMenu(this, viewer, detailsMenu);
+        manager.OpenSubMenu(viewer, detailsMenu);
     }
 }

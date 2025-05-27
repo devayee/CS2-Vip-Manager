@@ -120,6 +120,12 @@ infinite_ammo = false
 fast_reload = false
 kill_screen = false
 
+# Kill Health Bonuses (0 = disabled)
+health_per_kill = 0
+health_per_headshot = 0
+health_per_knife_kill = 0
+health_per_noscope = 0
+
 # Smoke Color Settings
 [GroupSettings.smoke_color]
 enabled = false
@@ -190,6 +196,12 @@ player_bunnyhop = true
 infinite_ammo = false
 fast_reload = false
 kill_screen = false
+
+# Kill Health Bonuses (0 = disabled)
+health_per_kill = 5
+health_per_headshot = 10
+health_per_knife_kill = 20
+health_per_noscope = 15
 
 [GroupSettings.smoke_color]
 enabled = true

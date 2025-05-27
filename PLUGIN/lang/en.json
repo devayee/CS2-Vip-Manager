@@ -1,6 +1,4 @@
 {
-  "global.divider": "{darkred}✦•···························•✦•···························•✦",
-
   "vip.welcome.title": "{0} Welcome, {darkred}{1}",
   "vip.welcome.services": "{0} Thank you for supporting our server. Your services: ( {gold}{1}{default} ) have been loaded.",
   "vip.welcome.expiry.never": "{0} Your service expires: {gold}Never",
@@ -44,6 +42,7 @@
   "commands.vip.details.title": "{0} Service details: {gold}{1}",
   "commands.vip.details.neverexpires": "Never expires",
   "commands.vip.details.expires": "Expires: {0}",
+  "commands.vip.details.external": "External VIP (managed externally)",
   "commands.vip.details.usebenefits": "{0} Use {green}!benefits{default} to see all benefits.",
   "commands.vip.extend": "{0} Visit: {green}https://example.com{default} to extend your VIP services.",
 
@@ -236,5 +235,19 @@
   "benefits.special.fastreload": "Fast Reload",
   "benefits.special.killscreen": "Kill Screen Effect",
 
-  "benefits.menu.special": "Special features ►"
+  "benefits.menu.special": "Special features ►",
+
+  "vip.healthbonus.kill": "{0} +{1} HP for kill!",
+  "vip.healthbonus.headshot": "{0} +{1} HP for headshot!",
+  "vip.healthbonus.knife": "{0} +{1} HP for knife kill!",
+  "vip.healthbonus.noscope": "{0} +{1} HP for noscope kill!",
+
+  "benefits.healthbonus.header": "Kill Health Bonuses:",
+  "benefits.healthbonus.title": "Kill Health Bonuses",
+  "benefits.healthbonus.kill": "Kill bonus: +{0} HP",
+  "benefits.healthbonus.headshot": "Headshot bonus: +{0} HP",
+  "benefits.healthbonus.knife": "Knife kill bonus: +{0} HP",
+  "benefits.healthbonus.noscope": "Noscope bonus: +{0} HP",
+
+  "benefits.menu.healthbonus": "Kill health bonuses ►"
 }

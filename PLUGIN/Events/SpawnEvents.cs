@@ -55,7 +55,7 @@ namespace Mesharsky_Vip
                 var externalServices = CheckExternalPermissions(player);
                 if (externalServices.Count > 0)
                 {
-                    PlayerSpawn_CombineBonuses(player, externalServices);
+                    PlayerSpawn_CombineBonuses(player, externalServices!);
                 }
             }
         }

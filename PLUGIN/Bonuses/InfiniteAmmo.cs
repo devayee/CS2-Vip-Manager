@@ -31,9 +31,6 @@ public partial class MesharskyVip
     
     private static void ApplyInfiniteAmmo(CCSPlayerController player)
     {
-        if (!PlayerCache.TryGetValue(player.SteamID, out var cachedPlayer)) return;
-        if (!cachedPlayer.Active) return;
-        
         var hasInfiniteAmmo = PlayerHasFeature(player, service => service.InfiniteAmmo);
         if (!hasInfiniteAmmo) return;
         

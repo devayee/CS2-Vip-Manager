@@ -27,13 +27,11 @@ namespace Mesharsky_Vip
         {
             var cachedPlayer = GetOrCreatePlayer(player.SteamID, player.PlayerName);
             
-            // Check if player already has any active group
             if (cachedPlayer.Groups.Any(g => g.Active))
             {
                 return;
             }
             
-            // Find the service to inherit from
             var inheritGroup = Config!.NightVip.InheritGroup;
             var service = ServiceManager.GetService(inheritGroup);
             if (service == null)
@@ -42,7 +40,6 @@ namespace Mesharsky_Vip
                 return;
             }
             
-            // Create a temporary night VIP group
             var nightVipGroup = new PlayerGroup
             {
                 GroupName = inheritGroup,
@@ -121,10 +118,8 @@ namespace Mesharsky_Vip
             
             Console.WriteLine($"[Mesharsky - VIP] Removed Night VIP from player [ Name: {player.PlayerName} - SteamID: {player.SteamID} ]");
             
-            ChatHelper.PrintLocalizedChat(player, _localizer!, false, "global.divider");
             ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.nightvip.expired.title");
             ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.nightvip.expired.info");
-            ChatHelper.PrintLocalizedChat(player, _localizer!, false, "global.divider");
         }
     }
 }

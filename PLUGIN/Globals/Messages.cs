@@ -25,11 +25,9 @@ public partial class MesharskyVip
             if (service == null)
                 return;
 
-            ChatHelper.PrintLocalizedChat(player, _localizer!, false, "global.divider");
             ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.nightvip.welcome.title", player.PlayerName);
             ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.nightvip.welcome.info", service.Name);
             ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.nightvip.welcome.expiry", Config.NightVip.EndHour);
-            ChatHelper.PrintLocalizedChat(player, _localizer!, false, "global.divider");
         });
     }
 
@@ -53,9 +51,7 @@ public partial class MesharskyVip
             otherGroupsText = _localizer![translationKey, (groupCount - 1)];
         }
 
-        ChatHelper.PrintLocalizedChatToAll(_localizer!, false, "global.divider");
         ChatHelper.PrintLocalizedChatToAll(_localizer!, true, "vip.player.join", player.PlayerName, primaryService.Name, otherGroupsText);
-        ChatHelper.PrintLocalizedChatToAll(_localizer!, false, "global.divider");
     }
 
     private void GoodbyeMessageEveryone(CCSPlayerController player)
@@ -80,9 +76,7 @@ public partial class MesharskyVip
             otherGroupsText = _localizer![translationKey, (activeGroups.Count - 1)];
         }
                 
-        ChatHelper.PrintLocalizedChatToAll(_localizer!, false, "global.divider");
         ChatHelper.PrintLocalizedChatToAll(_localizer!, true, "vip.player.leave", player.PlayerName, primaryService.Name, otherGroupsText);
-        ChatHelper.PrintLocalizedChatToAll(_localizer!, false, "global.divider");
     }
 
     private void ScheduleWelcomeMessage(CCSPlayerController player, List<PlayerGroup> activeGroups)
@@ -102,7 +96,6 @@ public partial class MesharskyVip
                 return svc != null ? $"{svc.Name}" : g.GroupName;
             }));
 
-            ChatHelper.PrintLocalizedChat(player, _localizer!, false, "global.divider");
             ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.welcome.title", player.PlayerName);
             ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.welcome.services", servicesList);
             
@@ -181,8 +174,6 @@ public partial class MesharskyVip
 
                 ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.welcome.expiry.date", expiryDateString, timeRemainingMessage);
             }
-            
-            ChatHelper.PrintLocalizedChat(player, _localizer!, false, "global.divider");
         });
     }
 
@@ -195,11 +186,9 @@ public partial class MesharskyVip
     
             var servicesList = string.Join(", ", services.Select(s => s.Name));
 
-            ChatHelper.PrintLocalizedChat(player, _localizer!, false, "global.divider");
             ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.welcome.title", player.PlayerName);
             ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.welcome.services", servicesList);
             ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.external.permission");
-            ChatHelper.PrintLocalizedChat(player, _localizer!, false, "global.divider");
         });
     }
 }

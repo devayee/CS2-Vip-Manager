@@ -1,6 +1,4 @@
 {
-  "global.divider": "{darkred}✦•···························•✦•···························•✦",
-
   "vip.welcome.title": "{0} Witaj, {darkred}{1}",
   "vip.welcome.services": "{0} Dziękujemy za wsparcie naszego serwera. Twoje usługi: ( {gold}{1}{default} ) zostały załadowane.",
   "vip.welcome.expiry.never": "{0} Twoja usługa wygasa: {gold}Nigdy",
@@ -44,6 +42,7 @@
   "commands.vip.details.title": "{0} Szczegóły usługi: {gold}{1}",
   "commands.vip.details.neverexpires": "Nigdy nie wygasa",
   "commands.vip.details.expires": "Wygasa: {0}",
+  "commands.vip.details.external": "Zewnętrzny VIP (zarządzany zewnętrznie)",
   "commands.vip.details.usebenefits": "{0} Użyj {green}!benefits{default} aby zobaczyć wszystkie bonusy.",
   "commands.vip.extend": "{0} Odwiedź: {green}https://example.pl{default} aby przedłużyć swoje usługi VIP.",
 
@@ -236,5 +235,19 @@
   "benefits.special.fastreload": "Szybkie Przeładowanie",
   "benefits.special.killscreen": "Efekt Zabójstwa",
 
-  "benefits.menu.special": "Specjalne funkcje ►"
+  "benefits.menu.special": "Specjalne funkcje ►",
+
+  "vip.healthbonus.kill": "{0} +{1} HP za zabójstwo!",
+  "vip.healthbonus.headshot": "{0} +{1} HP za headshot!",
+  "vip.healthbonus.knife": "{0} +{1} HP za zabójstwo nożem!",
+  "vip.healthbonus.noscope": "{0} +{1} HP za noscope!",
+
+  "benefits.healthbonus.header": "Bonusy zdrowia za zabójstwa:",
+  "benefits.healthbonus.title": "Bonusy zdrowia za zabójstwa",
+  "benefits.healthbonus.kill": "Bonus za zabójstwo: +{0} HP",
+  "benefits.healthbonus.headshot": "Bonus za headshot: +{0} HP",
+  "benefits.healthbonus.knife": "Bonus za zabójstwo nożem: +{0} HP",
+  "benefits.healthbonus.noscope": "Bonus za noscope: +{0} HP",
+
+  "benefits.menu.healthbonus": "Bonusy zdrowia za zabójstwa ►"
 }

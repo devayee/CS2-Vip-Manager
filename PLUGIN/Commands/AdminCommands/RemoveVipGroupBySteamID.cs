@@ -46,9 +46,7 @@ public partial class MesharskyVip
         {
             AdminManager.RemovePlayerPermissions(onlinePlayer, service.Flag);
             
-            ChatHelper.PrintLocalizedChat(onlinePlayer, _localizer!, false, "global.divider");
             ChatHelper.PrintLocalizedChat(onlinePlayer, _localizer!, true, "admin.notify.service.removed", groupName);
-            ChatHelper.PrintLocalizedChat(onlinePlayer, _localizer!, false, "global.divider");
         }
 
         ReplyToCommand(player, "admin.group.success.removed.offline", groupName, steamId);

@@ -34,7 +34,6 @@ public partial class MesharskyVip
             return Groups.FirstOrDefault(g => g.Active);
         }
         
-        // Helper to check if player has a specific group
         public bool HasGroup(string groupName)
         {
             return Groups.Any(g => g.GroupName == groupName && g.Active);

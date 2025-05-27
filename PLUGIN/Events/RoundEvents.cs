@@ -11,8 +11,6 @@ namespace Mesharsky_Vip
         {
             if (IsWarmup())
                 return HookResult.Handled;
-
-            _roundStateStarted = true;
             
             var gameRules = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules;
             if (gameRules != null)
@@ -21,10 +19,6 @@ namespace Mesharsky_Vip
                                   $"IsPistol={IsPistolRound()}, " +
                                   $"EffectiveRound={GetEffectiveRoundNumber()}");
 
-            AddTimer(10.0f, () =>
-            {
-                _roundStateStarted = false;
-            });
 
             return HookResult.Continue;
         }

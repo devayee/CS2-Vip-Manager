@@ -1,11 +1,7 @@
-﻿using System.Drawing;
-using CounterStrikeSharp.API;
+﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Translations;
 using CounterStrikeSharp.API.Modules.Commands;
-using CS2ScreenMenuAPI;
-using CS2ScreenMenuAPI.Enums;
-using CS2ScreenMenuAPI.Internal;
 
 namespace Mesharsky_Vip;
 
@@ -78,15 +74,12 @@ public partial class MesharskyVip
         var config = GetPlayerWeaponMenuConfig(player);
         if (config == null)
             return;
+        
+        var manager = GetMenuManager();
+        if (manager == null)
+            return;
             
-        var menu = new ScreenMenu(_localizer!.ForPlayer(player, "commands.weaponsmenu.selectteam"), this)
-        {
-            PostSelectAction = PostSelectAction.Nothing,
-            IsSubMenu = false,
-            TextColor = Color.Orange,
-            FontName = "Verdana Bold",
-            MenuType = MenuType.Both
-        };
+        var menu = manager.CreateMenu(_localizer!.ForPlayer(player, "commands.weaponsmenu.selectteam"), isSubMenu: false);
         
         var hasCtSelection = TryGetTeamWeaponSelection(player, 3, out var ctSelection);
         var ctPrimaryDisplay = hasCtSelection && ctSelection.PrimaryWeapon != null 
@@ -122,7 +115,7 @@ public partial class MesharskyVip
             });
         }
         
-        MenuAPI.OpenMenu(this, player, menu);
+        manager.OpenMainMenu(player, menu);
     }
     
     private void CreateTeamSelectionResetMenu(CCSPlayerController player)
@@ -131,35 +124,32 @@ public partial class MesharskyVip
         if (config == null)
             return;
             
-        var menu = new ScreenMenu(_localizer!.ForPlayer(player, "commands.weaponsmenu.selectteamreset"), this)
-        {
-            PostSelectAction = PostSelectAction.Nothing,
-            IsSubMenu = false,
-            TextColor = Color.Orange,
-            FontName = "Verdana Bold",
-            MenuType = MenuType.Both
-        };
+        var manager = GetMenuManager();
+        if (manager == null)
+            return;
+            
+        var menu = manager.CreateMenu(_localizer!.ForPlayer(player, "commands.weaponsmenu.selectteamreset"), isSubMenu: false);
         
         menu.AddOption(_localizer!.ForPlayer(player, "commands.weaponsmenu.resetct"), (p, _) => {
             RemoveTeamWeaponSelection(p, 3);
             ChatHelper.PrintLocalizedChat(p, _localizer!, true, "commands.weaponsmenu.resetteam", "CT");
-            MenuAPI.CloseActiveMenu(p);
+            manager.CloseMenu(player);
         });
         
         menu.AddOption(_localizer!.ForPlayer(player, "commands.weaponsmenu.resett"), (p, _) => {
             RemoveTeamWeaponSelection(p, 2);
             ChatHelper.PrintLocalizedChat(p, _localizer!, true, "commands.weaponsmenu.resetteam", "T");
-            MenuAPI.CloseActiveMenu(p);
+            manager.CloseMenu(player);
         });
         
         menu.AddOption(_localizer!.ForPlayer(player, "commands.weaponsmenu.resetboth"), (p, _) => {
             RemoveTeamWeaponSelection(p, 2);
             RemoveTeamWeaponSelection(p, 3);
             ChatHelper.PrintLocalizedChat(p, _localizer!, true, "commands.weaponsmenu.resetallteams");
-            MenuAPI.CloseActiveMenu(p);
+            manager.CloseMenu(player);
         });
         
-        MenuAPI.OpenMenu(this, player, menu);
+        manager.OpenMainMenu(player, menu);
     }
     
     [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
@@ -218,26 +208,43 @@ public partial class MesharskyVip
     
     private static bool CanUseWeaponMenu(CCSPlayerController player)
     {
-        if (!PlayerCache.TryGetValue(player.SteamID, out var cachedPlayer) || !cachedPlayer.Active)
-            return false;
-            
         return PlayerHasFeature(player, service => service.WeaponMenu.Enabled);
     }
     
     private static WeaponMenuConfig? GetPlayerWeaponMenuConfig(CCSPlayerController player)
     {
-        if (!PlayerCache.TryGetValue(player.SteamID, out var cachedPlayer) || !cachedPlayer.Active)
-            return null;
+        // First check cached player data
+        if (PlayerCache.TryGetValue(player.SteamID, out var cachedPlayer) && cachedPlayer.Active)
+        {
+            var activeGroups = cachedPlayer.Groups.Where(g => g.Active).ToList();
+            var config = (from service in activeGroups.Select(@group => ServiceManager.GetService(@group.GroupName)).OfType<Service>() where service.WeaponMenu.Enabled select service.WeaponMenu).FirstOrDefault();
             
-        var activeGroups = cachedPlayer.Groups.Where(g => g.Active).ToList();
-
-        return (from service in activeGroups.Select(@group => ServiceManager.GetService(@group.GroupName)).OfType<Service>() where service.WeaponMenu.Enabled select service.WeaponMenu).FirstOrDefault();
+            if (config != null)
+                return config;
+        }
+        
+        // Fallback: Check external permissions for weapon menu access
+        var externalServices = CheckExternalPermissions(player);
+        foreach (var service in externalServices)
+        {
+            if (service.WeaponMenu.Enabled)
+            {
+                Console.WriteLine($"[Mesharsky - VIP] Weapon menu config found via external permissions for player {player.PlayerName}, service {service.Name}");
+                return service.WeaponMenu;
+            }
+        }
+        
+        return null;
     }
     
     private void CreateMainWeaponsMenu(CCSPlayerController player, int teamNum = 0)
     {
         var config = GetPlayerWeaponMenuConfig(player);
         if (config == null)
+            return;
+        
+        var manager = GetMenuManager();
+        if (manager == null)
             return;
         
         if (teamNum == 0)
@@ -255,14 +262,7 @@ public partial class MesharskyVip
         
         string teamName = teamNum == 2 ? "T" : "CT";
         
-        var menu = new ScreenMenu(_localizer!.ForPlayer(player, "commands.weaponsmenu.titleteam", teamName), this)
-        {
-            PostSelectAction = PostSelectAction.Nothing,
-            IsSubMenu = false,
-            TextColor = Color.Orange,
-            FontName = "Verdana Bold",
-            MenuType = MenuType.Both
-        };
+        var menu = manager.CreateMenu(_localizer!.ForPlayer(player, "commands.weaponsmenu.titleteam", teamName), isSubMenu: true);
         
         menu.AddOption(_localizer!.ForPlayer(player, "commands.weaponsmenu.chooseprimary", 
             hasSelection && selection.PrimaryWeapon != null ? GetWeaponDisplayName(selection.PrimaryWeapon) : "None"), 
@@ -281,7 +281,7 @@ public partial class MesharskyVip
             menu.AddOption(_localizer!.ForPlayer(player, "commands.weaponsmenu.resetloadout"), (p, _) => {
                 RemoveTeamWeaponSelection(p, teamNum);
                 ChatHelper.PrintLocalizedChat(p, _localizer!, true, "commands.weaponsmenu.resetteam", teamName);
-                MenuAPI.CloseActiveMenu(p);
+                manager.CloseMenu(player);
             });
         }
         
@@ -289,13 +289,17 @@ public partial class MesharskyVip
             CreateTeamSelectionMenu(p);
         });
         
-        MenuAPI.OpenMenu(this, player, menu);
+        manager.OpenSubMenu(player, menu);
     }
     
     private void CreateWeaponSelectionMenu(CCSPlayerController player, bool isPrimary, int teamNum = 0)
     {
         var config = GetPlayerWeaponMenuConfig(player);
         if (config == null)
+            return;
+            
+        var manager = GetMenuManager();
+        if (manager == null)
             return;
             
         if (teamNum == 0)
@@ -321,14 +325,8 @@ public partial class MesharskyVip
         
         var teamName = teamNum == 2 ? "T" : "CT";
         
-        var menu = new ScreenMenu(_localizer!.ForPlayer(player, 
-            isPrimary ? "commands.weaponsmenu.selectprimaryteam" : "commands.weaponsmenu.selectsecondaryteam", teamName), this)
-        {
-            PostSelectAction = PostSelectAction.Nothing,
-            IsSubMenu = true,
-            TextColor = Color.Gold,
-            FontName = "Verdana Bold"
-        };
+        var menu = manager.CreateMenu(_localizer!.ForPlayer(player, 
+            isPrimary ? "commands.weaponsmenu.selectprimaryteam" : "commands.weaponsmenu.selectsecondaryteam", teamName), isSubMenu: true);
         
         menu.AddOption(_localizer!.ForPlayer(player, "commands.weaponsmenu.none"), (p, _) => {
             UpdateTeamWeaponSelection(p, isPrimary, null, teamNum);
@@ -352,7 +350,7 @@ public partial class MesharskyVip
             CreateMainWeaponsMenu(p, teamNum);
         });
         
-        MenuAPI.OpenMenu(this, player, menu);
+        manager.OpenSubMenu(player, menu);
     }
     
     private void UpdateTeamWeaponSelection(CCSPlayerController player, bool isPrimary, string? weaponName, int teamNum)

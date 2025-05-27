@@ -82,7 +82,6 @@ public partial class MesharskyVip
                 expiryMessageForChat = formattedDate;
             }
             
-            ChatHelper.PrintLocalizedChat(onlinePlayer, _localizer!, false, "global.divider");
             ChatHelper.PrintLocalizedChat(onlinePlayer, _localizer!, true, "admin.notify.service.added", groupName);
             
             if (expiryTime == 0) {
@@ -90,8 +89,6 @@ public partial class MesharskyVip
             } else {
                 ChatHelper.PrintLocalizedChat(onlinePlayer, _localizer!, true, "admin.notify.service.expiry", expiryMessageForChat);
             }
-            
-            ChatHelper.PrintLocalizedChat(onlinePlayer, _localizer!, false, "global.divider");
         }
         
         var expiryMsg = expiryTime == 0 

@@ -95,12 +95,10 @@ public partial class MesharskyVip
         var service = ServiceManager.GetService(testGroup);
         if (service == null) return;
     
-        ChatHelper.PrintLocalizedChat(player, _localizer!, false, "global.divider");
         ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.welcome.title", playerName);
         ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.welcome.services", testGroup);
         ChatHelper.PrintLocalizedChat(player, _localizer!, true, "vip.welcome.expiry.date", 
             FormatExpiryDate(player, expiryTime),
             FormatRemainingDays(player, expiryTime));
-        ChatHelper.PrintLocalizedChat(player, _localizer!, false, "global.divider");
     }
 }

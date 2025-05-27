@@ -24,7 +24,11 @@ public partial class MesharskyVip
             return;
         }
         
-        var menu = new ChatMenu(_localizer!.ForPlayer(player, "commands.vip.menu.title"));
+        var manager = GetMenuManager();
+        if (manager == null)
+            return;
+            
+        var menu = manager.CreateMenu(_localizer!.ForPlayer(player, "commands.vip.menu.title"), isSubMenu: false);
         
         foreach (var group in activeGroups)
         {
@@ -36,21 +40,22 @@ public partial class MesharskyVip
                 : _localizer!.ForPlayer(player, "commands.vip.details.expires", 
                     DateTimeOffset.FromUnixTimeSeconds(group.ExpiryTime).ToLocalTime().ToString("dd MMM yyyy HH:mm"));
                 
-            menu.AddMenuOption($"{group.GroupName} - {expiryText}", (player, _) => {
-                ShowGroupDetails(player, group);
+            menu.AddOption($"{group.GroupName} - {expiryText}", (p, _) => {
+                ShowGroupDetails(p, group);
+                manager.CloseMenu(player);
             });
         }
         
-        menu.AddMenuOption(_localizer!.ForPlayer(player, "commands.vip.menu.extend"), (player, _) => {
-            ChatHelper.PrintLocalizedChat(player, _localizer!, true, "commands.vip.extend");
+        menu.AddOption(_localizer!.ForPlayer(player, "commands.vip.menu.extend"), (p, _) => {
+            ChatHelper.PrintLocalizedChat(p, _localizer!, true, "commands.vip.extend");
+            manager.CloseMenu(player);
         });
         
-        MenuManager.OpenChatMenu(player, menu);
+        manager.OpenMainMenu(player, menu);
     }
     
-    private void ShowGroupDetails(CCSPlayerController player, PlayerGroup group)
+    private static void ShowGroupDetails(CCSPlayerController player, PlayerGroup group)
     {
-        ChatHelper.PrintLocalizedChat(player, _localizer!, false, "global.divider");
         ChatHelper.PrintLocalizedChat(player, _localizer!, true, "commands.vip.details.title", group.GroupName);
         
         var expiryText = group.ExpiryTime == 0 
@@ -60,6 +65,5 @@ public partial class MesharskyVip
             
         ChatHelper.PrintLocalizedChat(player, _localizer!, false, expiryText);
         ChatHelper.PrintLocalizedChat(player, _localizer!, true, "commands.vip.details.usebenefits");
-        ChatHelper.PrintLocalizedChat(player, _localizer!, false, "global.divider");
     }
 }

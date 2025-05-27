@@ -169,6 +169,14 @@ public partial class MesharskyVip
                              fastReloadObj is bool fastReload && fastReload,
                 KillScreen = group.TryGetValue("kill_screen", out var killScreenObj) && 
                              killScreenObj is bool killScreen and true,
+                HealthPerKill = group.TryGetValue("health_per_kill", out var healthPerKillObj) && 
+                                healthPerKillObj is long healthPerKill ? (int)healthPerKill : 0,
+                HealthPerHeadshot = group.TryGetValue("health_per_headshot", out var healthPerHeadshotObj) && 
+                                    healthPerHeadshotObj is long healthPerHeadshot ? (int)healthPerHeadshot : 0,
+                HealthPerKnifeKill = group.TryGetValue("health_per_knife_kill", out var healthPerKnifeKillObj) && 
+                                     healthPerKnifeKillObj is long healthPerKnifeKill ? (int)healthPerKnifeKill : 0,
+                HealthPerNoScope = group.TryGetValue("health_per_noscope", out var healthPerNoScopeObj) && 
+                                   healthPerNoScopeObj is long healthPerNoScope ? (int)healthPerNoScope : 0,
                 WeaponMenu = new WeaponMenuConfig()             
             };
 
@@ -223,6 +231,10 @@ public partial class MesharskyVip
                 InfiniteAmmo = groupConfig.InfiniteAmmo,
                 FastReload = groupConfig.FastReload,
                 KillScreen = groupConfig.KillScreen,
+                HealthPerKill = groupConfig.HealthPerKill,
+                HealthPerHeadshot = groupConfig.HealthPerHeadshot,
+                HealthPerKnifeKill = groupConfig.HealthPerKnifeKill,
+                HealthPerNoScope = groupConfig.HealthPerNoScope,
                 WeaponMenu = groupConfig.WeaponMenu
             };
 

@@ -1,9 +1,6 @@
 ﻿using System.Drawing;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Translations;
-using CS2ScreenMenuAPI;
-using CS2ScreenMenuAPI.Enums;
-using CS2ScreenMenuAPI.Internal;
 
 namespace Mesharsky_Vip;
 
@@ -14,37 +11,33 @@ public partial class MesharskyVip
         /// <summary>
         /// Renders all benefits for a single service to a menu
         /// </summary>
-        public static void RenderServiceBenefits(ScreenMenu menu, CCSPlayerController viewer, Service service, bool isDisabled = true)
+        public static void RenderServiceBenefits(IT3Menu menu, CCSPlayerController viewer, Service service)
         {
             if (service.PlayerHp > 100)
                 if (_localizer != null)
-                    menu.AddOption(_localizer.ForPlayer(viewer, "benefits.health", service.PlayerHp), (_, _) => { },
-                        disabled: isDisabled);
+                    menu.AddOption(_localizer.ForPlayer(viewer, "benefits.health", service.PlayerHp), (_, _) => { });
 
             if (service.PlayerMaxHp > 0)
                 if (_localizer != null)
-                    menu.AddOption(_localizer.ForPlayer(viewer, "benefits.maxhealth", service.PlayerMaxHp),
-                        (_, _) => { }, disabled: isDisabled);
+                    menu.AddOption(_localizer.ForPlayer(viewer, "benefits.maxhealth", service.PlayerMaxHp), (_, _) => { });
             
             if (service.PlayerVest)
                 if (_localizer != null)
-                    menu.AddOption(_localizer.ForPlayer(viewer, "benefits.armor", service.PlayerVestRound),
-                        (_, _) => { }, disabled: isDisabled);
+                    menu.AddOption(_localizer.ForPlayer(viewer, "benefits.armor", service.PlayerVestRound), (_, _) => { });
 
             if (service.PlayerHelmet)
                 if (_localizer != null)
-                    menu.AddOption(_localizer.ForPlayer(viewer, "benefits.helmet", service.PlayerHelmetRound),
-                        (_, _) => { }, disabled: isDisabled);
+                    menu.AddOption(_localizer.ForPlayer(viewer, "benefits.helmet", service.PlayerHelmetRound), (_, _) => { });
 
             if (service.PlayerDefuser)
                 if (_localizer != null)
-                    menu.AddOption(_localizer.ForPlayer(viewer, "benefits.defuser"), (_, _) => { },
-                        disabled: isDisabled);
+                    menu.AddOption(_localizer.ForPlayer(viewer, "benefits.defuser"), (_, _) => { });
 
-            RenderGrenades(menu, viewer, service, isDisabled);
-            RenderAbilities(menu, viewer, service, isDisabled);
-            RenderSmokeColor(menu, viewer, service, isDisabled);
-            RenderSpecialFeatures(menu, viewer, service, isDisabled);
+            RenderGrenades(menu, viewer, service);
+            RenderAbilities(menu, viewer, service);
+            RenderSmokeColor(menu, viewer, service);
+            RenderSpecialFeatures(menu, viewer, service);
+            RenderHealthBonuses(menu, viewer, service);
         }
         
         /// <summary>
@@ -52,10 +45,14 @@ public partial class MesharskyVip
         /// </summary>
         public static void CreateBenefitsSubmenus(
             MesharskyVip plugin,
-            ScreenMenu parentMenu, 
+            IT3Menu parentMenu, 
             CCSPlayerController viewer, 
             List<Service> services)
         {
+            var manager = plugin.GetMenuManager();
+            if (manager == null)
+                return;
+                
             var heAmount = services.Max(s => s.HeAmount);
             var flashAmount = services.Max(s => s.FlashAmount);
             var smokeAmount = services.Max(s => s.SmokeAmount);
@@ -70,18 +67,11 @@ public partial class MesharskyVip
             
             var hasGrenades = heAmount > 0 || flashAmount > 0 || smokeAmount > 0 || 
                             decoyAmount > 0 || molotovAmount > 0 || healthshotAmount > 0;
-                           
+                        
             if (hasGrenades)
             {
                 parentMenu.AddOption(_localizer!.ForPlayer(viewer, "benefits.menu.grenades"), (p, _) => {
-                    var grenadesMenu = new ScreenMenu(_localizer!.ForPlayer(viewer, "benefits.grenades.title"), plugin)
-                    {
-                        IsSubMenu = true,
-                        PostSelectAction = PostSelectAction.Nothing,
-                        TextColor = Color.Orange,
-                        ParentMenu = parentMenu,
-                        FontName = "Verdana Bold"
-                    };
+                    var grenadesMenu = manager.CreateMenu(_localizer!.ForPlayer(viewer, "benefits.grenades.title"), isSubMenu: true);
                     
                     if (heAmount > 0)
                         grenadesMenu.AddOption(_localizer!.ForPlayer(viewer, "benefits.grenades.he", heAmount), (_, _) => {});
@@ -101,7 +91,7 @@ public partial class MesharskyVip
                     if (healthshotAmount > 0)
                         grenadesMenu.AddOption(_localizer!.ForPlayer(viewer, "benefits.grenades.healthshot", healthshotAmount), (_, _) => {});
                     
-                    MenuAPI.OpenSubMenu(plugin, p, grenadesMenu);
+                    manager.OpenSubMenu(p, grenadesMenu);
                 });
             }
             
@@ -110,14 +100,7 @@ public partial class MesharskyVip
             if (hasAbilities)
             {
                 parentMenu.AddOption(_localizer!.ForPlayer(viewer, "benefits.menu.abilities"), (p, _) => {
-                    var abilitiesMenu = new ScreenMenu(_localizer!.ForPlayer(viewer, "benefits.abilities.title"), plugin)
-                    {
-                        IsSubMenu = true,
-                        PostSelectAction = PostSelectAction.Nothing,
-                        TextColor = Color.GreenYellow,
-                        ParentMenu = parentMenu,
-                        FontName = "Verdana Bold"
-                    };
+                    var abilitiesMenu = manager.CreateMenu(_localizer!.ForPlayer(viewer, "benefits.abilities.title"), isSubMenu: true);
                     
                     if (extraJumps > 0)
                     {
@@ -135,7 +118,7 @@ public partial class MesharskyVip
                     if (hasWeaponMenu)
                         abilitiesMenu.AddOption(_localizer!.ForPlayer(viewer, "benefits.abilities.weaponmenu"), (_, _) => {});
                     
-                    MenuAPI.OpenSubMenu(plugin, p, abilitiesMenu);
+                    manager.OpenSubMenu(p, abilitiesMenu);
                 });
             }
             
@@ -143,14 +126,7 @@ public partial class MesharskyVip
             if (hasSmokeColor)
             {
                 parentMenu.AddOption(_localizer!.ForPlayer(viewer, "benefits.menu.smokecolor"), (p, _) => {
-                    var smokeColorMenu = new ScreenMenu(_localizer!.ForPlayer(viewer, "benefits.smokecolor.title"), plugin)
-                    {
-                        IsSubMenu = true,
-                        PostSelectAction = PostSelectAction.Nothing,
-                        TextColor = Color.DeepSkyBlue,
-                        ParentMenu = parentMenu,
-                        FontName = "Verdana Bold"
-                    };
+                    var smokeColorMenu = manager.CreateMenu(_localizer!.ForPlayer(viewer, "benefits.smokecolor.title"), isSubMenu: true);
             
                     foreach (var service in services.Where(s => s.SmokeColorEnabled))
                     {
@@ -165,55 +141,56 @@ public partial class MesharskyVip
                         }
                     }
             
-                    MenuAPI.OpenSubMenu(plugin, p, smokeColorMenu);
+                    manager.OpenSubMenu(p, smokeColorMenu);
                 });
             }
             
             CreateSpecialFeaturesSubmenu(plugin, parentMenu, viewer, services);
+            CreateHealthBonusesSubmenu(plugin, parentMenu, viewer, services);
         }
         
         /// <summary>
         /// Renders grenade benefits to a menu
         /// </summary>
-        private static void RenderGrenades(ScreenMenu menu, CCSPlayerController viewer, Service service, bool isDisabled)
+        private static void RenderGrenades(IT3Menu menu, CCSPlayerController viewer, Service service)
         {
             var hasGrenades = service.HeAmount > 0 || service.FlashAmount > 0 || 
-                             service.SmokeAmount > 0 || service.DecoyAmount > 0 || 
-                             service.MolotovAmount > 0 || service.HealthshotAmount > 0;
-                               
+                            service.SmokeAmount > 0 || service.DecoyAmount > 0 || 
+                            service.MolotovAmount > 0 || service.HealthshotAmount > 0;
+                            
             if (!hasGrenades) return;
             
-            menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.grenades.header"), (_, _) => { }, disabled: true);
+            menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.grenades.header"), (_, _) => { });
             
             if (service.HeAmount > 0)
-                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.grenades.he", service.HeAmount), (_, _) => { }, disabled: isDisabled);
+                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.grenades.he", service.HeAmount), (_, _) => { });
                 
             if (service.FlashAmount > 0)
-                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.grenades.flash", service.FlashAmount), (_, _) => { }, disabled: isDisabled);
+                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.grenades.flash", service.FlashAmount), (_, _) => { });
                 
             if (service.SmokeAmount > 0)
-                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.grenades.smoke", service.SmokeAmount), (_, _) => { }, disabled: isDisabled);
+                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.grenades.smoke", service.SmokeAmount), (_, _) => { });
                 
             if (service.DecoyAmount > 0)
-                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.grenades.decoy", service.DecoyAmount), (_, _) => { }, disabled: isDisabled);
+                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.grenades.decoy", service.DecoyAmount), (_, _) => { });
                 
             if (service.MolotovAmount > 0)
-                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.grenades.molotov", service.MolotovAmount), (_, _) => { }, disabled: isDisabled);
+                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.grenades.molotov", service.MolotovAmount), (_, _) => { });
                 
             if (service.HealthshotAmount > 0)
-                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.grenades.healthshot", service.HealthshotAmount), (_, _) => { }, disabled: isDisabled);
+                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.grenades.healthshot", service.HealthshotAmount), (_, _) => { });
         }
         
         /// <summary>
         /// Renders special abilities to a menu
         /// </summary>
-        private static void RenderAbilities(ScreenMenu menu, CCSPlayerController viewer, Service service, bool isDisabled)
+        private static void RenderAbilities(IT3Menu menu, CCSPlayerController viewer, Service service)
         {
             var hasAbilities = service.PlayerExtraJumps > 0 || service.PlayerBunnyhop || service.WeaponMenu.Enabled;
             
             if (!hasAbilities) return;
             
-            menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.abilities.header"), (_, _) => { }, disabled: true);
+            menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.abilities.header"), (_, _) => { });
             
             if (service.PlayerExtraJumps > 0)
             {
@@ -221,56 +198,56 @@ public partial class MesharskyVip
                     ? _localizer!.ForPlayer(viewer, "benefits.abilities.jump.double", service.PlayerExtraJumps + 1)
                     : _localizer!.ForPlayer(viewer, "benefits.abilities.jump.triple", service.PlayerExtraJumps + 1);
                     
-                menu.AddOption(jumpType, (_, _) => { }, disabled: isDisabled);
-                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.abilities.jumpheight", service.PlayerExtraJumpHeight), (_, _) => { }, disabled: isDisabled);
+                menu.AddOption(jumpType, (_, _) => { });
+                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.abilities.jumpheight", service.PlayerExtraJumpHeight), (_, _) => { });
             }
             
             if (service.PlayerBunnyhop)
-                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.abilities.bhop"), (_, _) => { }, disabled: isDisabled);
+                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.abilities.bhop"), (_, _) => { });
                 
             if (service.WeaponMenu.Enabled)
-                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.abilities.weaponmenu"), (_, _) => { }, disabled: isDisabled);
+                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.abilities.weaponmenu"), (_, _) => { });
         }
         
         /// <summary>
         /// Renders smoke color options to a menu
         /// </summary>
-        private static void RenderSmokeColor(ScreenMenu menu, CCSPlayerController viewer, Service service, bool isDisabled)
+        private static void RenderSmokeColor(IT3Menu menu, CCSPlayerController viewer, Service service)
         {
             if (!service.SmokeColorEnabled) return;
             
-            menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.smokecolor.header"), (_, _) => { }, disabled: true);
+            menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.smokecolor.header"), (_, _) => { });
             
             if (service.SmokeColorRandom)
             {
-                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.smokecolor.random", service.Name), (_, _) => { }, disabled: isDisabled);
+                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.smokecolor.random", service.Name), (_, _) => { });
             }
             else
             {
                 menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.smokecolor.custom", 
-                    service.Name, service.SmokeColorR, service.SmokeColorG, service.SmokeColorB), (_, _) => { }, disabled: isDisabled);
+                    service.Name, service.SmokeColorR, service.SmokeColorG, service.SmokeColorB), (_, _) => { });
             }
         }
         
         /// <summary>
         /// Renders new features to a menu
         /// </summary>
-        private static void RenderSpecialFeatures(ScreenMenu menu, CCSPlayerController viewer, Service service, bool isDisabled)
+        private static void RenderSpecialFeatures(IT3Menu menu, CCSPlayerController viewer, Service service)
         {
             var hasNewFeatures = service.InfiniteAmmo || service.FastReload || service.KillScreen;
             
             if (!hasNewFeatures) return;
             
-            menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.special.header"), (_, _) => { }, disabled: true);
+            menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.special.header"), (_, _) => { });
             
             if (service.InfiniteAmmo)
-                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.special.infiniteammo"), (_, _) => { }, disabled: isDisabled);
+                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.special.infiniteammo"), (_, _) => { });
             
             if (service.FastReload)
-                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.special.fastreload"), (_, _) => { }, disabled: isDisabled);
+                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.special.fastreload"), (_, _) => { });
                 
             if (service.KillScreen)
-                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.special.killscreen"), (_, _) => { }, disabled: isDisabled);
+                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.special.killscreen"), (_, _) => { });
         }
 
         /// <summary>
@@ -278,10 +255,14 @@ public partial class MesharskyVip
         /// </summary>
         private static void CreateSpecialFeaturesSubmenu(
             MesharskyVip plugin,
-            ScreenMenu parentMenu, 
+            IT3Menu parentMenu, 
             CCSPlayerController viewer, 
             List<Service> services)
         {
+            var manager = plugin.GetMenuManager();
+            if (manager == null)
+                return;
+                
             var hasInfiniteAmmo = services.Any(s => s.InfiniteAmmo);
             var hasFastReload = services.Any(s => s.FastReload);
             var hasKillScreen = services.Any(s => s.KillScreen);
@@ -291,14 +272,7 @@ public partial class MesharskyVip
             if (hasSpecialFeatures)
             {
                 parentMenu.AddOption(_localizer!.ForPlayer(viewer, "benefits.menu.special"), (p, _) => {
-                    var specialFeaturesMenu = new ScreenMenu(_localizer!.ForPlayer(viewer, "benefits.special.title"), plugin)
-                    {
-                        IsSubMenu = true,
-                        PostSelectAction = PostSelectAction.Nothing,
-                        TextColor = Color.HotPink,
-                        ParentMenu = parentMenu,
-                        FontName = "Verdana Bold"
-                    };
+                    var specialFeaturesMenu = manager.CreateMenu(_localizer!.ForPlayer(viewer, "benefits.special.title"), isSubMenu: true);
                     
                     if (hasInfiniteAmmo)
                         specialFeaturesMenu.AddOption(_localizer!.ForPlayer(viewer, "benefits.special.infiniteammo"), (_, _) => {});
@@ -309,7 +283,75 @@ public partial class MesharskyVip
                     if (hasKillScreen)
                         specialFeaturesMenu.AddOption(_localizer!.ForPlayer(viewer, "benefits.special.killscreen"), (_, _) => {});
                     
-                    MenuAPI.OpenSubMenu(plugin, p, specialFeaturesMenu);
+                    manager.OpenSubMenu(p, specialFeaturesMenu);
+                });
+            }
+        }
+        
+        /// <summary>
+        /// Renders health bonus features to a menu
+        /// </summary>
+        private static void RenderHealthBonuses(IT3Menu menu, CCSPlayerController viewer, Service service)
+        {
+            var hasHealthBonuses = service.HealthPerKill > 0 || service.HealthPerHeadshot > 0 || 
+                                   service.HealthPerKnifeKill > 0 || service.HealthPerNoScope > 0;
+            
+            if (!hasHealthBonuses) return;
+            
+            menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.healthbonus.header"), (_, _) => { });
+            
+            if (service.HealthPerKill > 0)
+                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.healthbonus.kill", service.HealthPerKill), (_, _) => { });
+            
+            if (service.HealthPerHeadshot > 0)
+                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.healthbonus.headshot", service.HealthPerHeadshot), (_, _) => { });
+                
+            if (service.HealthPerKnifeKill > 0)
+                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.healthbonus.knife", service.HealthPerKnifeKill), (_, _) => { });
+                
+            if (service.HealthPerNoScope > 0)
+                menu.AddOption(_localizer!.ForPlayer(viewer, "benefits.healthbonus.noscope", service.HealthPerNoScope), (_, _) => { });
+        }
+        
+        /// <summary>
+        /// Creates a submenu for health bonuses
+        /// </summary>
+        private static void CreateHealthBonusesSubmenu(
+            MesharskyVip plugin,
+            IT3Menu parentMenu, 
+            CCSPlayerController viewer, 
+            List<Service> services)
+        {
+            var manager = plugin.GetMenuManager();
+            if (manager == null)
+                return;
+                
+            var maxKillHealth = services.Max(s => s.HealthPerKill);
+            var maxHeadshotHealth = services.Max(s => s.HealthPerHeadshot);
+            var maxKnifeHealth = services.Max(s => s.HealthPerKnifeKill);
+            var maxNoScopeHealth = services.Max(s => s.HealthPerNoScope);
+            
+            var hasHealthBonuses = maxKillHealth > 0 || maxHeadshotHealth > 0 || 
+                                   maxKnifeHealth > 0 || maxNoScopeHealth > 0;
+            
+            if (hasHealthBonuses)
+            {
+                parentMenu.AddOption(_localizer!.ForPlayer(viewer, "benefits.menu.healthbonus"), (p, _) => {
+                    var healthBonusMenu = manager.CreateMenu(_localizer!.ForPlayer(viewer, "benefits.healthbonus.title"), isSubMenu: true);
+                    
+                    if (maxKillHealth > 0)
+                        healthBonusMenu.AddOption(_localizer!.ForPlayer(viewer, "benefits.healthbonus.kill", maxKillHealth), (_, _) => {});
+                    
+                    if (maxHeadshotHealth > 0)
+                        healthBonusMenu.AddOption(_localizer!.ForPlayer(viewer, "benefits.healthbonus.headshot", maxHeadshotHealth), (_, _) => {});
+                        
+                    if (maxKnifeHealth > 0)
+                        healthBonusMenu.AddOption(_localizer!.ForPlayer(viewer, "benefits.healthbonus.knife", maxKnifeHealth), (_, _) => {});
+                        
+                    if (maxNoScopeHealth > 0)
+                        healthBonusMenu.AddOption(_localizer!.ForPlayer(viewer, "benefits.healthbonus.noscope", maxNoScopeHealth), (_, _) => {});
+                    
+                    manager.OpenSubMenu(p, healthBonusMenu);
                 });
             }
         }

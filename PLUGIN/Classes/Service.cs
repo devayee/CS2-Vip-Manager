@@ -41,6 +41,12 @@ public partial class MesharskyVip
         public bool FastReload { get; set; } = false;
         public bool KillScreen { get; set; } = false;
         
+        // Kill Health Bonuses
+        public int HealthPerKill { get; set; } = 0;
+        public int HealthPerHeadshot { get; set; } = 0;
+        public int HealthPerKnifeKill { get; set; } = 0;
+        public int HealthPerNoScope { get; set; } = 0;
+        
         // Weapon Menu
         public WeaponMenuConfig WeaponMenu { get; set; } = new();
     }

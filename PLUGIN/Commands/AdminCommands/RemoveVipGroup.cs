@@ -4,9 +4,6 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Translations;
 using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
-using CS2ScreenMenuAPI;
-using CS2ScreenMenuAPI.Enums;
-using CS2ScreenMenuAPI.Internal;
 
 namespace Mesharsky_Vip;
 
@@ -52,16 +49,13 @@ public partial class MesharskyVip
     {
         var cachedPlayer = GetOrCreatePlayer(targetPlayer.SteamID, targetPlayer.PlayerName);
         
-        var menu = new ScreenMenu(_localizer!.ForPlayer(admin, "admin.menu.title.removegroup", targetPlayer.PlayerName), this)
-        {
-            PostSelectAction = PostSelectAction.Nothing,
-            IsSubMenu = true,
-            TextColor = Color.Gold,
-            FontName = "Verdana Bold",
-            MenuType = MenuType.Both
-        };
+        var manager = GetMenuManager();
+        if (manager == null)
+            return;
+            
+        var menu = manager.CreateMenu(_localizer!.ForPlayer(admin, "admin.menu.title.removegroup", targetPlayer.PlayerName), isSubMenu: true);
         
-        menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.player.info", targetPlayer.PlayerName, targetPlayer.SteamID), (_, _) => { }, disabled: true);
+        menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.player.info", targetPlayer.PlayerName, targetPlayer.SteamID), (_, _) => { });
         
         foreach (var group in cachedPlayer.Groups.Where(g => g.Active))
         {
@@ -78,21 +72,18 @@ public partial class MesharskyVip
             ShowRemoveVipPlayerSelectionMenu(p);
         });
         
-        MenuAPI.OpenMenu(this, admin, menu);
+        manager.OpenSubMenu(admin, menu);
     }
     
     private void ShowRemoveConfirmationMenu(CCSPlayerController admin, CCSPlayerController targetPlayer, string groupName)
     {
-        var menu = new ScreenMenu(_localizer!.ForPlayer(admin, "admin.menu.title.confirmremove", groupName, targetPlayer.PlayerName), this)
-        {
-            PostSelectAction = PostSelectAction.Nothing,
-            IsSubMenu = true,
-            TextColor = Color.OrangeRed,
-            FontName = "Verdana Bold",
-            MenuType = MenuType.Both
-        };
+        var manager = GetMenuManager();
+        if (manager == null)
+            return;
+            
+        var menu = manager.CreateMenu(_localizer!.ForPlayer(admin, "admin.menu.title.confirmremove", groupName, targetPlayer.PlayerName), isSubMenu: true);
         
-        menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.confirm.areyousure"), (_, _) => { }, disabled: true);
+        menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.confirm.areyousure"), (_, _) => { });
         
         menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.confirm.yes"), (p, _) => {
             RemoveVipGroupFromPlayer(p, targetPlayer, groupName);
@@ -102,7 +93,7 @@ public partial class MesharskyVip
             ShowRemoveGroupMenu(p, targetPlayer);
         });
         
-        MenuAPI.OpenMenu(this, admin, menu);
+        manager.OpenSubMenu(admin, menu);
     }
 
     private void RemoveVipGroupFromPlayer(CCSPlayerController admin, CCSPlayerController targetPlayer, string groupName)
@@ -128,9 +119,7 @@ public partial class MesharskyVip
         
         ChatHelper.PrintLocalizedChat(admin, _localizer!, true, "admin.group.removed", groupName, targetPlayer.PlayerName);
         
-        ChatHelper.PrintLocalizedChat(targetPlayer, _localizer!, false, "global.divider");
         ChatHelper.PrintLocalizedChat(targetPlayer, _localizer!, true, "admin.notify.service.removed", groupName);
-        ChatHelper.PrintLocalizedChat(targetPlayer, _localizer!, false, "global.divider");
         
         ShowRemoveVipPlayerSelectionMenu(admin);
     }

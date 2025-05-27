@@ -1,12 +1,8 @@
-﻿using System.Drawing;
-using CounterStrikeSharp.API;
+﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Translations;
 using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
-using CS2ScreenMenuAPI;
-using CS2ScreenMenuAPI.Enums;
-using CS2ScreenMenuAPI.Internal;
 
 namespace Mesharsky_Vip;
 
@@ -41,16 +37,13 @@ public partial class MesharskyVip
 
     private void ShowGroupSelectionMenu(CCSPlayerController admin, CCSPlayerController targetPlayer)
     {
-        var menu = new ScreenMenu(_localizer!.ForPlayer(admin, "admin.menu.title.selectgroup", targetPlayer.PlayerName), this)
-        {
-            PostSelectAction = PostSelectAction.Nothing,
-            IsSubMenu = true,
-            TextColor = Color.Gold,
-            FontName = "Verdana Bold",
-            MenuType = MenuType.Both
-        };
+        var manager = GetMenuManager();
+        if (manager == null)
+            return;
+            
+        var menu = manager.CreateMenu(_localizer!.ForPlayer(admin, "admin.menu.title.selectgroup", targetPlayer.PlayerName), isSubMenu: true);
         
-        menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.player.info", targetPlayer.PlayerName, targetPlayer.SteamID), (_, _) => { }, disabled: true);
+        menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.player.info", targetPlayer.PlayerName, targetPlayer.SteamID), (_, _) => { });
         
         foreach (var group in Config!.GroupSettings)
         {
@@ -73,25 +66,22 @@ public partial class MesharskyVip
             ShowAddVipPlayerSelectionMenu(p);
         });
         
-        MenuAPI.OpenMenu(this, admin, menu);
+        manager.OpenSubMenu(admin, menu);
     }
     
     private void ShowGroupExistsMenu(CCSPlayerController admin, CCSPlayerController targetPlayer, string groupName, int currentExpiryTime)
     {
-        var menu = new ScreenMenu(_localizer!.ForPlayer(admin, "admin.menu.title.groupexists", targetPlayer.PlayerName, groupName), this)
-        {
-            PostSelectAction = PostSelectAction.Nothing,
-            IsSubMenu = true,
-            TextColor = Color.OrangeRed,
-            FontName = "Verdana Bold",
-            MenuType = MenuType.Both
-        };
+        var manager = GetMenuManager();
+        if (manager == null)
+            return;
+            
+        var menu = manager.CreateMenu(_localizer!.ForPlayer(admin, "admin.menu.title.groupexists", targetPlayer.PlayerName, groupName), isSubMenu: true);
         
         var expiryInfo = currentExpiryTime == 0 
             ? _localizer!.ForPlayer(admin, "admin.group.expiry.permanent") 
             : _localizer!.ForPlayer(admin, "admin.group.expiry.until", FormatExpiryDate(admin, currentExpiryTime));
         
-        menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.groupexists.info", groupName, expiryInfo), (_, _) => { }, disabled: true);
+        menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.groupexists.info", groupName, expiryInfo), (_, _) => { });
         
         menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.groupexists.replace"), (p, _) => {
             ShowDurationSelectionMenu(p, targetPlayer, groupName);
@@ -108,22 +98,19 @@ public partial class MesharskyVip
             ShowGroupSelectionMenu(p, targetPlayer);
         });
         
-        MenuAPI.OpenMenu(this, admin, menu);
+        manager.OpenSubMenu(admin, menu);
     }
     
     private void ShowExtendDurationMenu(CCSPlayerController admin, CCSPlayerController targetPlayer, string groupName, int currentExpiryTime)
     {
-        var menu = new ScreenMenu(_localizer!.ForPlayer(admin, "admin.menu.title.extendduration", targetPlayer.PlayerName, groupName), this)
-        {
-            PostSelectAction = PostSelectAction.Nothing,
-            IsSubMenu = true,
-            TextColor = Color.Gold,
-            FontName = "Verdana Bold",
-            MenuType = MenuType.Both
-        };
+        var manager = GetMenuManager();
+        if (manager == null)
+            return;
+            
+        var menu = manager.CreateMenu(_localizer!.ForPlayer(admin, "admin.menu.title.extendduration", targetPlayer.PlayerName, groupName), isSubMenu: true);
         
         menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.extend.currentexpiry", 
-            FormatExpiryDate(admin, currentExpiryTime)), (_, _) => { }, disabled: true);
+            FormatExpiryDate(admin, currentExpiryTime)), (_, _) => { });
         
         menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.duration.oneday"), (p, _) => {
             ExtendVipGroupForPlayer(p, targetPlayer, groupName, 1, currentExpiryTime);
@@ -153,19 +140,16 @@ public partial class MesharskyVip
             ShowGroupExistsMenu(p, targetPlayer, groupName, currentExpiryTime);
         });
         
-        MenuAPI.OpenMenu(this, admin, menu);
+        manager.OpenSubMenu(admin, menu);
     }
 
     private void ShowDurationSelectionMenu(CCSPlayerController admin, CCSPlayerController targetPlayer, string groupName)
     {
-        var menu = new ScreenMenu(_localizer!.ForPlayer(admin, "admin.menu.title.selectduration", targetPlayer.PlayerName, groupName), this)
-        {
-            PostSelectAction = PostSelectAction.Nothing,
-            IsSubMenu = true,
-            TextColor = Color.Gold,
-            FontName = "Verdana Bold",
-            MenuType = MenuType.Both
-        };
+        var manager = GetMenuManager();
+        if (manager == null)
+            return;
+            
+        var menu = manager.CreateMenu(_localizer!.ForPlayer(admin, "admin.menu.title.selectduration", targetPlayer.PlayerName, groupName), isSubMenu: true);
         
         menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.duration.permanent"), (p, _) => {
             AddVipGroupToPlayer(p, targetPlayer, groupName, 0);
@@ -199,7 +183,7 @@ public partial class MesharskyVip
             ShowGroupSelectionMenu(p, targetPlayer);
         });
         
-        MenuAPI.OpenMenu(this, admin, menu);
+        manager.OpenSubMenu(admin, menu);
     }
 
     private void AddVipGroupToPlayer(CCSPlayerController admin, CCSPlayerController targetPlayer, string groupName, int days)
@@ -235,7 +219,6 @@ public partial class MesharskyVip
 
         var expiryMessageForChat = expiryTime == 0 ? _localizer!.ForPlayer(targetPlayer, "commands.vip.details.neverexpires") : FormatExpiryDate(targetPlayer, expiryTime, "date.format.with_time");
         
-        ChatHelper.PrintLocalizedChat(targetPlayer, _localizer!, false, "global.divider");
         ChatHelper.PrintLocalizedChat(targetPlayer, _localizer!, true, "admin.notify.service.added", groupName);
         
         if (expiryTime == 0) {
@@ -243,8 +226,6 @@ public partial class MesharskyVip
         } else {
             ChatHelper.PrintLocalizedChat(targetPlayer, _localizer!, true, "admin.notify.service.expiry", expiryMessageForChat);
         }
-        
-        ChatHelper.PrintLocalizedChat(targetPlayer, _localizer!, false, "global.divider");
         
         ShowAddVipPlayerSelectionMenu(admin);
     }
@@ -280,10 +261,8 @@ public partial class MesharskyVip
             newExpiryFormatted, 
             daysToAdd);
         
-        ChatHelper.PrintLocalizedChat(targetPlayer, _localizer!, false, "global.divider");
         ChatHelper.PrintLocalizedChat(targetPlayer, _localizer!, true, "admin.notify.service.extended", 
             groupName, FormatExpiryDate(targetPlayer, newExpiryTime, "date.format.with_time"), daysToAdd);
-        ChatHelper.PrintLocalizedChat(targetPlayer, _localizer!, false, "global.divider");
         
         ShowAddVipPlayerSelectionMenu(admin);
     }

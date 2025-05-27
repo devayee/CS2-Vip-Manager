@@ -1,7 +1,9 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Core.Capabilities;
 using CounterStrikeSharp.API.Modules.Admin;
 using Microsoft.Extensions.Localization;
+using T3MenuSharedApi;
 
 namespace Mesharsky_Vip;
 
@@ -11,6 +13,8 @@ public partial class MesharskyVip : BasePlugin
     public override string ModuleAuthor => "Mesharsky";
     public override string ModuleDescription => "Advanced vip manager plugin.";
     public override string ModuleVersion => "1.3.0";
+
+    public IT3MenuManager? MenuManager;
 
     private static IStringLocalizer? _localizer { get; set; }
 
@@ -38,38 +42,44 @@ public partial class MesharskyVip : BasePlugin
     {
         _localizer = Localizer;
     }
+    
+    public IT3MenuManager? GetMenuManager()
+    {
+        MenuManager ??= new PluginCapability<IT3MenuManager>("t3menu:manager").Get();
+        return MenuManager;
+    }
 
     private void HandleHotReload()
     {
         Console.WriteLine("[Mesharsky - VIP] Plugin hot reloaded - reassigning permissions to all players");
-        
+
         var players = Utilities.GetPlayers().Where(p => p is { IsValid: true, IsBot: false }).ToList();
-        
+
         if (players.Count == 0)
         {
             Console.WriteLine("[Mesharsky - VIP] No players online during hot reload");
             return;
         }
-        
+
         Console.WriteLine($"[Mesharsky - VIP] Found {players.Count} players to reassign permissions");
-        
+
         foreach (var player in players)
         {
             if (!player.IsValid)
                 continue;
-                
+
             var steamId = player.SteamID;
             var playerName = player.PlayerName;
-            
+
             if (!_databaseLoaded)
             {
                 LogDatabaseNotLoaded(player);
                 continue;
             }
-            
+
             ResetPlayerCache(steamId);
             var cachedPlayer = GetOrCreatePlayer(steamId, playerName);
-            
+
             ReassignPlayerPermissions(player, cachedPlayer);
         }
     }

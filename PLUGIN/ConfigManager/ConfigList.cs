@@ -119,6 +119,12 @@ public partial class MesharskyVip
         public bool FastReload { get; set; }
         public bool KillScreen { get; set; }
         
+        // Kill Health Bonuses
+        public int HealthPerKill { get; set; } = 0;
+        public int HealthPerHeadshot { get; set; } = 0;
+        public int HealthPerKnifeKill { get; set; } = 0;
+        public int HealthPerNoScope { get; set; } = 0;
+        
         // Smoke Color
         public required SmokeColorConfig SmokeColor { get; set; }
         

@@ -2,11 +2,9 @@
 
 Hey everyone! I'm excited to release my **VIP Manager** plugin 🚀  
 
-You can see the plugin and website presentation here:  
-🎥 [YouTube Video](https://www.youtube.com/watch?v=-_8g3y1Z28Y)
 
 **‼️ REQUIRED LIBRARY FOR PLUGIN TO WORK:**  
-[CS2ScreenMenuAPI](https://github.com/T3Marius/CS2ScreenMenuAPI) (Thanks @mariust3 for the nice release)
+[T3 Menu API](https://github.com/T3Marius/T3Menu-API)
 
 ---
 
@@ -17,6 +15,7 @@ You can see the plugin and website presentation here:
 - **Night VIP**: Free VIP access during specified hours (e.g., off-peak times)
 - **Smart Multi-Group Support**: Players can belong to multiple VIP groups simultaneously, with the plugin automatically providing the best benefits across all active groups (no duplicate benefits, just the highest values from each category)
 - **VIP TEST** Allows players to test a VIP group for a specified duration, with configurable cooldown options (reuse after X days or restrict to a one-time use).
+- **External Flag Support** Do you have automatic shop or other plugin that assigns flags? VIP Manager fully supports external flag permission.
 
 ### 🔧 Admin Management
 - **In-game Administration**: User-friendly menu system for adding, removing, and extending VIP privileges
@@ -32,6 +31,7 @@ You can see the plugin and website presentation here:
 - **Movement Abilities**: Multi-jump capabilities (double/triple), custom jump height, auto-bhop
 - **Weapon Access**: Special weapons menu access (!guns) **(NOT YET IMPLEMENTED)**
 - **Colored Smoke Grenades**
+- **Health Per Kill Bonuses**: Players can gain health for specific events
 
 ### 👥 Player Features
 - **Self-Service**: Players can check their VIP status and benefits

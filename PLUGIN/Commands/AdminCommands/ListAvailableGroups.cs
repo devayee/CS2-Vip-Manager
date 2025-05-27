@@ -3,10 +3,6 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Translations;
 using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
-using CS2ScreenMenuAPI;
-using CS2ScreenMenuAPI.Enums;
-using CS2ScreenMenuAPI.Internal;
-
 
 namespace Mesharsky_Vip;
 
@@ -27,15 +23,12 @@ public partial class MesharskyVip
         
         if (!player.IsValid)
             return;
+            
+        var manager = GetMenuManager();
+        if (manager == null)
+            return;
         
-        var menu = new ScreenMenu(_localizer!.ForPlayer(player, "admin.menu.title.listavailable"), this)
-        {
-            PostSelectAction = PostSelectAction.Nothing,
-            IsSubMenu = false,
-            TextColor = Color.Gold,
-            FontName = "Verdana Bold",
-            MenuType = MenuType.Both
-        };
+        var menu = manager.CreateMenu(_localizer!.ForPlayer(player, "admin.menu.title.listavailable"), isSubMenu: false);
         
         foreach (var group in Config!.GroupSettings)
         {
@@ -45,10 +38,10 @@ public partial class MesharskyVip
         }
         
         menu.AddOption(_localizer!.ForPlayer(player, "admin.menu.button.close"), (p, _) => {
-            MenuAPI.CloseActiveMenu(p);
+            manager.CloseMenu(player);
         });
         
-        MenuAPI.OpenMenu(this, player, menu);
+        manager.OpenMainMenu(player, menu);
     }
     
     private static void cmd_ListAvailableGroupsConsole(CCSPlayerController? player)
@@ -78,21 +71,18 @@ public partial class MesharskyVip
         }
     }
     
-    private void ShowGroupDetailsMenu(CCSPlayerController admin, GroupSettingsConfig group, ScreenMenu parentMenu)
+    private void ShowGroupDetailsMenu(CCSPlayerController admin, GroupSettingsConfig group, IT3Menu parentMenu)
     {
-        var menu = new ScreenMenu(_localizer!.ForPlayer(admin, "admin.menu.title.groupdetails", group.Name), this)
-        {
-            IsSubMenu = true,
-            PostSelectAction = PostSelectAction.Nothing,
-            TextColor = Color.LightBlue,
-            FontName = "Verdana Bold",
-            ParentMenu = parentMenu
-        };
+        var manager = GetMenuManager();
+        if (manager == null)
+            return;
+            
+        var menu = manager.CreateMenu(_localizer!.ForPlayer(admin, "admin.menu.title.groupdetails", group.Name), isSubMenu: true);
         
-        menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.details.name", group.Name), (_, _) => { }, disabled: true);
-        menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.details.flag", group.Flag), (_, _) => { }, disabled: true);
+        menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.details.name", group.Name), (_, _) => { });
+        menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.details.flag", group.Flag), (_, _) => { });
         
-        menu.AddOption(_localizer!.ForPlayer(admin, "benefits.header"), (_, _) => { }, disabled: true);
+        menu.AddOption(_localizer!.ForPlayer(admin, "benefits.header"), (_, _) => { });
         
         var service = new Service
         {
@@ -127,11 +117,6 @@ public partial class MesharskyVip
         
         BenefitsRenderer.RenderServiceBenefits(menu, admin, service);
         
-        menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.button.back"), (p, _) => {
-            MenuAPI.CloseActiveMenu(p);
-            MenuAPI.OpenMenu(this, p, parentMenu);
-        });
-        
-        MenuAPI.OpenMenu(this, admin, menu);
+        manager.OpenSubMenu(admin, menu);
     }
 }

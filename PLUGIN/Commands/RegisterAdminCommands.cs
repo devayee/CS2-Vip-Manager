@@ -1,10 +1,6 @@
-﻿using System.Drawing;
-using CounterStrikeSharp.API.Core;
+﻿using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Translations;
 using CounterStrikeSharp.API.Modules.Admin;
-using CS2ScreenMenuAPI;
-using CS2ScreenMenuAPI.Enums;
-using CS2ScreenMenuAPI.Internal;
 
 namespace Mesharsky_Vip;
 
@@ -27,14 +23,11 @@ public partial class MesharskyVip
     
     private void ShowPlayerSelectionMenu(CCSPlayerController admin, List<CCSPlayerController> players, string title, Action<CCSPlayerController> onSelect)
     {
-        var menu = new ScreenMenu(title, this)
-        {
-            PostSelectAction = PostSelectAction.Nothing,
-            IsSubMenu = false,
-            TextColor = Color.Gold,
-            FontName = "Verdana Bold",
-            MenuType = MenuType.Both
-        };
+        var manager = GetMenuManager();
+        if (manager == null)
+            return;
+            
+        var menu = manager.CreateMenu(title, isSubMenu: false);
         
         foreach (var p in players)
         {
@@ -44,10 +37,10 @@ public partial class MesharskyVip
         }
         
         menu.AddOption(_localizer!.ForPlayer(admin, "admin.menu.button.cancel"), (sender, _) => {
-            MenuAPI.CloseActiveMenu(sender);
+            manager.CloseMenu(admin);
         });
         
-        MenuAPI.OpenMenu(this, admin, menu);
+        manager.OpenMainMenu(admin, menu);
     }
     
     private static bool CheckCommandAccess(CCSPlayerController? player)

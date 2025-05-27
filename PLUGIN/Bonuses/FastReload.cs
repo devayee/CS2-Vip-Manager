@@ -21,9 +21,6 @@ public partial class MesharskyVip
     
     private static void ApplyFastReload(CCSPlayerController player)
     {
-        if (!PlayerCache.TryGetValue(player.SteamID, out var cachedPlayer)) return;
-        if (!cachedPlayer.Active) return;
-        
         var hasFastReload = PlayerHasFeature(player, service => service.FastReload);
         if (!hasFastReload) return;
 

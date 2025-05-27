@@ -25,19 +25,31 @@ public partial class MesharskyVip
                 var controller = new CCSPlayerController(throwerController.Handle);
                 if (!controller.IsValid || controller.IsBot) return;
                 
-                if (!PlayerCache.TryGetValue(controller.SteamID, out var cachedPlayer) || !cachedPlayer.Active)
+                if (!PlayerHasFeature(controller, service => service.SmokeColorEnabled))
                     return;
                 
-                var activeServices = cachedPlayer.Groups
-                    .Where(g => g.Active)
-                    .Select(g => ServiceManager.GetService(g.GroupName))
-                    .Where(s => s is { SmokeColorEnabled: true })
-                    .ToList();
-
-                if (activeServices.Count == 0)
-                    return;
+                Service? service = null;
                 
-                var service = activeServices.First();
+                if (PlayerCache.TryGetValue(controller.SteamID, out var cachedPlayer) && cachedPlayer.Active)
+                {
+                    var activeServices = cachedPlayer.Groups
+                        .Where(g => g.Active)
+                        .Select(g => ServiceManager.GetService(g.GroupName))
+                        .Where(s => s is { SmokeColorEnabled: true })
+                        .ToList();
+                    
+                    if (activeServices.Count > 0)
+                        service = activeServices.First();
+                }
+                
+                if (service == null)
+                {
+                    var externalServices = CheckExternalPermissions(controller);
+                    service = externalServices.FirstOrDefault(s => s.SmokeColorEnabled);
+                }
+                
+                if (service == null)
+                    return;
                 
                 if (service!.SmokeColorRandom)
                 {

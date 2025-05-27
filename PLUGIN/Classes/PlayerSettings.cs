@@ -7,7 +7,6 @@ public partial class MesharskyVip
 {
     public class PlayerSettings
     {
-        // Double Jump
         public int JumpsUsed { get; set; } = 0;
         public PlayerButtons LastButtons { get; set; }
         public PlayerFlags LastFlags { get; set; }
