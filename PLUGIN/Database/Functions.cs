@@ -187,7 +187,7 @@ public partial class MesharskyVip
         }
     }
 
-    private static void DeleteWeaponPreferencesFromDb(CCSPlayerController player, int teamNum)
+    private static void DeleteWeaponPreferencesFromDb(ulong steamId, int teamNum)
     {
         try
         {
@@ -195,7 +195,7 @@ public partial class MesharskyVip
             
             connection.Execute(
                 "DELETE FROM vip_weapon_preferences WHERE steamid64 = @SteamID AND team_num = @TeamNum",
-                new { player.SteamID, TeamNum = teamNum }
+                new { SteamID = steamId, TeamNum = teamNum }
             );
         }
         catch (Exception ex)

@@ -34,7 +34,7 @@ public partial class MesharskyVip
             return HookResult.Continue;
         
         Server.NextFrame(() => {
-            Task.Run(() => LoadPlayerWeaponPreferences(player));
+            LoadPlayerWeaponPreferences(player);
         });
         
         return HookResult.Continue;
@@ -441,8 +441,9 @@ public partial class MesharskyVip
             
         if (cachedPlayer.WeaponSelections.TryGetValue(teamNum, out _))
         {
+            var steamId = player.SteamID;
             Server.NextFrame(() => {
-                Task.Run(() => DeleteWeaponPreferencesFromDb(player, teamNum));
+                Task.Run(() => DeleteWeaponPreferencesFromDb(steamId, teamNum));
             });
             
             cachedPlayer.WeaponSelections.Remove(teamNum);
