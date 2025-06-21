@@ -251,6 +251,10 @@ public partial class MesharskyVip
             NightVip = nightVipConfig,
             VipTest = vipTestConfig
         };
+
+
+        
+
     }
     
     private WeaponMenuConfig ParseWeaponMenuConfig(TomlTable group)
@@ -310,4 +314,6 @@ public partial class MesharskyVip
         
         return weaponMenuConfig;
     }
+
+
 }

@@ -338,4 +338,60 @@ public partial class MesharskyVip
             new { SteamID = steamId, Name = playerName, Date = currentTime }
         );
     }
+
+    private static void DB_SyncGroups()
+    {
+        string tableString = @"CREATE TABLE IF NOT EXISTS vip_groups (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(50) NOT NULL UNIQUE,
+            flag VARCHAR(50) NOT NULL,
+            description TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )";
+
+        using var connection = new MySqlConnection(_connectionString);
+        connection.Execute(tableString);
+
+        // Get existing group names in one query
+        var existingGroupNames = connection.Query<string>("SELECT name FROM vip_groups").ToHashSet();
+        var configGroupNames = Config!.GroupSettings.Select(g => g.Name).ToHashSet();
+
+        // Batch UPSERT all config groups in one query
+        if (Config.GroupSettings.Count > 0)
+        {
+            var groupData = Config.GroupSettings.Select(g => new { 
+                Name = g.Name, 
+                Flag = g.Flag, 
+                Description = ""
+            }).ToList();
+
+            connection.Execute(
+                @"INSERT INTO vip_groups (name, flag, description) 
+                  VALUES (@Name, @Flag, @Description)
+                  ON DUPLICATE KEY UPDATE flag = VALUES(flag), description = VALUES(description)",
+                groupData
+            );
+            Console.WriteLine($"[Mesharsky - VIP] Synced {groupData.Count} groups to database");
+        }
+
+        // Remove groups that don't exist in config (batch operation)
+        var groupsToRemove = existingGroupNames.Except(configGroupNames).ToList();
+        
+        if (groupsToRemove.Count > 0)
+        {
+            // Batch delete groups that don't exist in config
+            var deletePlaceholders = string.Join(",", groupsToRemove.Select((_, i) => $"@del{i}"));
+            var deleteParams = groupsToRemove.Select((name, i) => new { Key = $"@del{i}", Value = name })
+                                          .ToDictionary(x => x.Key, x => (object)x.Value);
+            
+            var removedCount = connection.Execute(
+                $"DELETE FROM vip_groups WHERE name IN ({deletePlaceholders})",
+                deleteParams
+            );
+            Console.WriteLine($"[Mesharsky - VIP] Removed {removedCount} groups from database (not in config)");
+        }
+        
+        Console.WriteLine($"[Mesharsky - VIP] Group synchronization complete");
+    }
+
 }
