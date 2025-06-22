@@ -83,6 +83,7 @@ listvip_command = ["css_listvipgroups", "css_listvip"]
 listavailable_command = ["css_vipgroupsavailable", "css_listavailable"]
 addvipsteam_command = ["css_addvipsteam"]
 removevipsteam_command = ["css_removevipsteam"]
+reloadvips_command = ["css_reloadvips"]
 
 ######################################
 #       VIP Group Definitions       #

@@ -14,6 +14,7 @@ public partial class MesharskyVip
         commandManager.RegisterCommand("removevip_command", "Remove a VIP group from a player", cmd_RemoveVipGroup);
         commandManager.RegisterCommand("listvip_command", "List all VIP groups for a player", cmd_ListVipGroups);
         commandManager.RegisterCommand("listavailable_command", "List all available VIP groups", cmd_ListAvailableGroups);
+        commandManager.RegisterCommand("reloadvips_command", "Reload VIP groups for all players", cmd_ReloadVips);
         
         commandManager.RegisterCommand("addvipsteam_command", "Add a VIP group to a player by SteamID64", cmd_AddVipGroupBySteamID);
         commandManager.RegisterCommand("removevipsteam_command", "Remove a VIP group from a player by SteamID64", cmd_RemoveVipGroupBySteamID);

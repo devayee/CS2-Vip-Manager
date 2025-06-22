@@ -67,6 +67,7 @@ public partial class MesharskyVip
         public List<string> ListAvailableCommand { get; set; } = [];
         public List<string> AddVipSteamCommand { get; set; } = [];
         public List<string> RemoveVipSteamCommand { get; set; } = [];
+        public List<string> ReloadVipsCommand { get; set; } = [];
     }
     
     public class SmokeColorConfig
