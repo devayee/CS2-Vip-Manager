@@ -67,7 +67,13 @@ public partial class MesharskyVip
                 case "viptest_command":
                     aliases = Config.VipTest.TestCommand;
                     break;
-                    
+                case "reloadvips_command":
+                    aliases = Config.CommandSettings.ReloadVipsCommand;
+
+                    if (aliases.Count == 0){
+                        aliases = ["css_reloadvips"];
+                    }
+                    break;
                 default:
                     Console.WriteLine($"[Mesharsky - VIP] WARNING: Unknown command key: {commandKey}");
                     return;
